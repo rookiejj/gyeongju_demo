@@ -22,7 +22,7 @@
   padding: 5px 6px;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.35),
-    0 0 0 0.5px rgba(255,255,255,0.05) inset;
+    0 0 0 0.5px rgba(255, 255, 255, 0.05) inset;
 }
 
 .float-nav-item {
@@ -55,57 +55,89 @@
 .float-nav-item.active::before {
   content: '';
   position: absolute;
-  top: 7px; bottom: 7px;
-  left: 7px; right: 7px;
+  top: 7px;
+  bottom: 7px;
+  left: 7px;
+  right: 7px;
   border-radius: 100px;
   background: rgba(212, 168, 67, 0.08);
 }
 
-.float-nav-icon { font-size: 15px; flex-shrink: 0; }
-.float-nav-label { position: relative; }
+.float-nav-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.float-nav-label {
+  position: relative;
+}
 
 /* 구분선 */
 .float-nav-sep {
   width: 1px;
   height: 20px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
   margin: 0 2px;
 }
 
 /* 모바일 */
 @media (max-width: 767px) {
-  .float-nav {
-    bottom: 0;
-    left: 0;
-    right: 0;
-    transform: none;
-    border-radius: 20px 20px 0 0;
-    padding: 8px 8px 12px;
-    justify-content: center;
-    gap: 2px;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-  }
-  .float-nav-item { padding: 8px 20px; font-size: 12px; }
-  .float-nav-sep { display: none; }
 
-  /* 메인 앱 페이지: 기존 탭바가 있으므로 플로팅 네비 숨김 */
-  body.page-demo .float-nav { display: none; }
+  /* 모든 페이지: 우하단 고정 아이콘 전용 컴팩트 pill */
+  .float-nav {
+    bottom: 16px;
+    left: auto;
+    right: 16px;
+    transform: none;
+    border-radius: 100px;
+    padding: 5px 5px;
+    gap: 2px;
+    flex-direction: column;
+  }
+
+  .float-nav-sep {
+    display: none;
+  }
+
+  /* 아이콘만 표시, 레이블 숨김 */
+  .float-nav-label {
+    display: none;
+  }
+
+  .float-nav-item {
+    padding: 9px 10px;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+  }
+
+  .float-nav-icon {
+    font-size: 17px;
+  }
+
+  /* 메인 앱: 기존 탭바 위로 올림 */
+  body.page-demo .float-nav {
+    display: flex;
+    bottom: calc(var(--tabnav-h, 64px) + 12px);
+  }
 }
 
 /* 메인 앱: 플로팅 네비가 기존 레이아웃과 겹치지 않도록 여백 */
-body.page-demo .layout { padding-bottom: 0; }
+body.page-demo .layout {
+  padding-bottom: 0;
+}
 
 /* 제안서·공모전 페이지: 하단 여백 확보 */
 body.page-proposal .content,
 body.page-contest .contest-body {
   padding-bottom: 90px;
 }
+
 @media (max-width: 767px) {
+
   body.page-proposal .content,
   body.page-contest .contest-body {
-    padding-bottom: 76px;
+    padding-bottom: 24px;
   }
 }
