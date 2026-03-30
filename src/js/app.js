@@ -3,16 +3,11 @@ const isMobile = () => window.innerWidth <= 767;
 
 function applyMobileLayout() {
   const mobile = isMobile();
-  const nav = document.querySelector('.mobile-tab-nav');
-
-  // 네비 직접 제어 — CSS 미디어쿼리 우회
-  nav.style.display = mobile ? 'flex' : 'none';
-
-  // 풀 힌트 문구
+  document.querySelector('.mobile-tab-nav').style.display = mobile ? 'flex' : 'none';
   const hint = document.getElementById('poolHint');
   if (hint) hint.textContent = mobile
-    ? '카드를 탭하면 시간대를 선택해 추가할 수 있어요!'
-    : '카드를 드래그해서 타임라인에 배치하세요. 배치 순서에 따라 교통·맛집 정보가 바뀝니다!';
+    ? '카드를 탭하면 시간대를 선택해 추가할 수 있어요! 배치된 카드는 꾹 눌러서 위치를 바꿀 수 있어요.'
+    : '카드를 드래그해서 타임라인에 배치하세요. 배치된 카드는 드래그로 순서를 바꿀 수 있어요.';
 }
 
 // ─── BOTTOM SHEET ────────────────────────────────────────────────────────────
@@ -24,7 +19,6 @@ function openSheet(cardId) {
   const overlay = document.getElementById('sheetOverlay');
   const sheet = document.getElementById('bottomSheet');
   const preview = document.getElementById('sheetCardPreview');
-
   preview.style.setProperty('--card-accent', card.accent);
   preview.innerHTML = `
     <div class="sheet-card-preview-emoji">${card.emoji}</div>
@@ -32,8 +26,6 @@ function openSheet(cardId) {
       <div class="sheet-card-name">${card.name}</div>
       <div class="sheet-card-era">${card.era}</div>
     </div>`;
-
-  // display 먼저 설정 후 한 프레임 뒤에 애니메이션 클래스 추가
   overlay.style.display = 'block';
   sheet.style.display = 'block';
   requestAnimationFrame(() => {
@@ -48,7 +40,6 @@ function closeSheet() {
   const sheet = document.getElementById('bottomSheet');
   overlay.classList.remove('show');
   sheet.classList.remove('show');
-  // 트랜지션 끝난 후 display:none
   setTimeout(() => {
     overlay.style.display = 'none';
     sheet.style.display = 'none';
@@ -59,20 +50,14 @@ function addToSlot(slotName) {
   if (!pendingCardId) return;
   const card = CARDS.find(c => c.id === pendingCardId);
   if (!card) return;
-
-  // 기존 슬롯에서 제거 후 새 슬롯에 추가
   ['morning', 'afternoon', 'evening'].forEach(s => {
     timeline[s] = timeline[s].filter(c => c.id !== pendingCardId);
   });
-  if (!timeline[slotName].some(c => c.id === card.id)) {
-    timeline[slotName].push(card);
-  }
-
+  if (!timeline[slotName].some(c => c.id === card.id)) timeline[slotName].push(card);
   closeSheet();
   renderPool(); renderAllSlots(); updateBadge(); triggerInfoUpdate();
-
-  const slotKo = slotName === 'morning' ? '오전' : slotName === 'afternoon' ? '오후' : '저녁';
-  showToast(`${card.name}을(를) ${slotKo}에 추가했어요!`);
+  const ko = slotName === 'morning' ? '오전' : slotName === 'afternoon' ? '오후' : '저녁';
+  showToast(`${card.name}을(를) ${ko}에 추가했어요!`);
 }
 
 // ─── TAB SWITCHING ───────────────────────────────────────────────────────────
@@ -83,7 +68,6 @@ function switchTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
 }
 
-// ─── BADGE ───────────────────────────────────────────────────────────────────
 function updateBadge() {
   const total = [...timeline.morning, ...timeline.afternoon, ...timeline.evening].length;
   const badge = document.getElementById('timelineBadge');
@@ -93,18 +77,207 @@ function updateBadge() {
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 const timeline = { morning: [], afternoon: [], evening: [] };
-let dragSourceId = null;
-let dragSourceSlot = null;
 let updateTimer = null;
 
-// ─── RENDER: CARD POOL ───────────────────────────────────────────────────────
+// ─── DRAG STATE ──────────────────────────────────────────────────────────────
+let dragSourceId = null;
+let dragSourceSlot = null;
+
+// ─── TOUCH DRAG STATE ────────────────────────────────────────────────────────
+let touchLongPressTimer = null;
+let touchDragActive = false;
+let touchDragCardId = null;
+let touchDragSlot = null;
+let touchGhost = null;
+
+// ─── INSERTION HELPERS ───────────────────────────────────────────────────────
+// 드래그 위치 기준으로 어느 카드 앞에 삽입할지 반환 (null = 맨 뒤)
+function getAfterElement(zone, clientX, clientY) {
+  const vertical = isMobile();
+  const cards = [...zone.querySelectorAll('.placed-card:not(.drag-ghost-placeholder)')];
+  let closest = { offset: Number.NEGATIVE_INFINITY, el: null };
+  cards.forEach(card => {
+    const rect = card.getBoundingClientRect();
+    const offset = vertical
+      ? clientY - rect.top - rect.height / 2
+      : clientX - rect.left - rect.width / 2;
+    if (offset < 0 && offset > closest.offset) closest = { offset, el: card };
+  });
+  return closest.el; // null = 맨 뒤에 삽입
+}
+
+function getInsertIndex(zone, afterEl) {
+  const cards = [...zone.querySelectorAll('.placed-card:not(.drag-ghost-placeholder)')];
+  if (!afterEl) return cards.length;
+  return cards.indexOf(afterEl);
+}
+
+// 삽입 위치 표시선 업데이트
+function updateInsertLine(zone, afterEl) {
+  zone.querySelectorAll('.insert-line').forEach(l => l.remove());
+  const line = document.createElement('div');
+  line.className = 'insert-line';
+  if (!afterEl) {
+    zone.appendChild(line);
+  } else {
+    zone.insertBefore(line, afterEl);
+  }
+}
+
+function clearInsertLine(zone) {
+  if (zone) zone.querySelectorAll('.insert-line').forEach(l => l.remove());
+}
+
+// ─── PERFORM DROP (공통) ─────────────────────────────────────────────────────
+function performDrop(cardId, fromSlot, toSlot, insertIdx) {
+  const card = CARDS.find(c => c.id === cardId);
+  if (!card) return;
+  // 기존 위치에서 제거
+  if (fromSlot) timeline[fromSlot] = timeline[fromSlot].filter(c => c.id !== cardId);
+  // 중복 제거
+  timeline[toSlot] = timeline[toSlot].filter(c => c.id !== cardId);
+  // 원하는 위치에 삽입
+  const idx = Math.min(insertIdx, timeline[toSlot].length);
+  timeline[toSlot].splice(idx, 0, card);
+  renderPool(); renderAllSlots(); updateBadge(); triggerInfoUpdate();
+}
+
+// ─── DESKTOP DRAG & DROP ─────────────────────────────────────────────────────
+function onDragOver(e) {
+  e.preventDefault();
+  const zone = e.currentTarget;
+  zone.classList.add('drag-over');
+  const afterEl = getAfterElement(zone, e.clientX, e.clientY);
+  updateInsertLine(zone, afterEl);
+}
+
+function onDragLeave(e) {
+  // relatedTarget 이 zone 내부면 무시
+  if (e.currentTarget.contains(e.relatedTarget)) return;
+  e.currentTarget.classList.remove('drag-over');
+  clearInsertLine(e.currentTarget);
+}
+
+function onDrop(e, targetSlot) {
+  e.preventDefault();
+  const zone = e.currentTarget;
+  zone.classList.remove('drag-over');
+  if (!dragSourceId) return;
+  const afterEl = getAfterElement(zone, e.clientX, e.clientY);
+  const idx = getInsertIndex(zone, afterEl);
+  clearInsertLine(zone);
+  performDrop(dragSourceId, dragSourceSlot, targetSlot, idx);
+  dragSourceId = null; dragSourceSlot = null;
+}
+
+function removeCard(cardId, slotName) {
+  timeline[slotName] = timeline[slotName].filter(c => c.id !== cardId);
+  renderPool(); renderAllSlots(); updateBadge(); triggerInfoUpdate();
+}
+
+// ─── TOUCH DRAG (모바일 롱프레스) ────────────────────────────────────────────
+function createGhost(card, touchX, touchY) {
+  touchGhost = document.createElement('div');
+  touchGhost.className = 'touch-ghost';
+  touchGhost.style.setProperty('--card-accent', card.accent);
+  touchGhost.innerHTML = `<span>${card.emoji}</span> ${card.name}`;
+  document.body.appendChild(touchGhost);
+  moveGhost(touchX, touchY);
+}
+
+function moveGhost(touchX, touchY) {
+  if (!touchGhost) return;
+  touchGhost.style.left = (touchX - 60) + 'px';
+  touchGhost.style.top = (touchY - 30) + 'px';
+}
+
+function removeGhost() {
+  if (touchGhost) { touchGhost.remove(); touchGhost = null; }
+}
+
+function bindTouchDrag(el, card, slotName) {
+  el.addEventListener('touchstart', e => {
+    // 삭제 버튼은 무시
+    if (e.target.classList.contains('remove-btn')) return;
+    const t = e.touches[0];
+    touchLongPressTimer = setTimeout(() => {
+      touchDragActive = true;
+      touchDragCardId = card.id;
+      touchDragSlot = slotName;
+      el.classList.add('dragging');
+      if (navigator.vibrate) navigator.vibrate(60);
+      createGhost(card, t.clientX, t.clientY);
+    }, 480);
+  }, { passive: true });
+
+  el.addEventListener('touchmove', e => {
+    if (!touchDragActive) { clearTimeout(touchLongPressTimer); return; }
+    e.preventDefault();
+    const t = e.touches[0];
+    moveGhost(t.clientX, t.clientY);
+
+    // 현재 손가락 아래의 drop zone 찾기
+    touchGhost.style.display = 'none';
+    const elBelow = document.elementFromPoint(t.clientX, t.clientY);
+    touchGhost.style.display = '';
+    const zone = elBelow?.closest('.slot-drop-zone');
+
+    document.querySelectorAll('.slot-drop-zone').forEach(z => {
+      z.classList.remove('drag-over');
+      clearInsertLine(z);
+    });
+    if (zone) {
+      zone.classList.add('drag-over');
+      const afterEl = getAfterElement(zone, t.clientX, t.clientY);
+      updateInsertLine(zone, afterEl);
+    }
+  }, { passive: false });
+
+  el.addEventListener('touchend', e => {
+    clearTimeout(touchLongPressTimer);
+    if (!touchDragActive) return;
+
+    const t = e.changedTouches[0];
+    touchGhost.style.display = 'none';
+    const elBelow = document.elementFromPoint(t.clientX, t.clientY);
+    touchGhost.style.display = '';
+    const zone = elBelow?.closest('.slot-drop-zone');
+
+    document.querySelectorAll('.slot-drop-zone').forEach(z => {
+      z.classList.remove('drag-over');
+      clearInsertLine(z);
+    });
+    el.classList.remove('dragging');
+
+    if (zone) {
+      const targetSlot = zone.dataset.slot;
+      const afterEl = getAfterElement(zone, t.clientX, t.clientY);
+      const idx = getInsertIndex(zone, afterEl);
+      performDrop(touchDragCardId, touchDragSlot, targetSlot, idx);
+    }
+
+    touchDragActive = false; touchDragCardId = null; touchDragSlot = null;
+    removeGhost();
+  }, { passive: true });
+
+  el.addEventListener('touchcancel', () => {
+    clearTimeout(touchLongPressTimer);
+    el.classList.remove('dragging');
+    touchDragActive = false; touchDragCardId = null; touchDragSlot = null;
+    removeGhost();
+    document.querySelectorAll('.slot-drop-zone').forEach(z => {
+      z.classList.remove('drag-over'); clearInsertLine(z);
+    });
+  }, { passive: true });
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
 function renderPool() {
   const pool = document.getElementById('cardPool');
   pool.innerHTML = '';
   CARDS.forEach(card => {
     const placed = Object.values(timeline).flat().some(c => c.id === card.id);
     if (placed) return;
-
     const el = document.createElement('div');
     el.className = 'story-card';
     el.style.setProperty('--card-accent', card.accent);
@@ -115,8 +288,7 @@ function renderPool() {
       <div class="card-name">${card.name}</div>
       <div class="card-era">${card.era}</div>
       <div class="card-story">${card.story}</div>
-      <div class="card-tags">${card.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-    `;
+      <div class="card-tags">${card.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
     el.addEventListener('dragstart', e => {
       dragSourceId = card.id; dragSourceSlot = null;
       el.classList.add('dragging');
@@ -128,7 +300,6 @@ function renderPool() {
   });
 }
 
-// ─── RENDER: SLOT ────────────────────────────────────────────────────────────
 function renderSlot(slotName) {
   const zone = document.getElementById('slot-' + slotName);
   const hint = zone.querySelector('.slot-empty-hint');
@@ -152,39 +323,27 @@ function renderSlot(slotName) {
       <div class="placed-card-emoji">${card.emoji}</div>
       <div class="placed-card-name">${card.name}</div>
       <div class="placed-card-duration">⏱ ${card.duration}</div>
-      <button class="remove-btn" onclick="removeCard('${card.id}','${slotName}')">✕</button>
-    `;
+      <button class="remove-btn" onclick="removeCard('${card.id}','${slotName}')">✕</button>`;
+    // 데스크탑 드래그
     el.addEventListener('dragstart', e => {
       dragSourceId = card.id; dragSourceSlot = slotName;
       el.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
     });
-    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      document.querySelectorAll('.slot-drop-zone').forEach(z => {
+        z.classList.remove('drag-over'); clearInsertLine(z);
+      });
+    });
+    // 모바일 터치 드래그
+    bindTouchDrag(el, card, slotName);
     zone.appendChild(el);
   });
 }
 
 function renderAllSlots() {
   ['morning', 'afternoon', 'evening'].forEach(renderSlot);
-}
-
-// ─── DRAG & DROP ─────────────────────────────────────────────────────────────
-function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
-function onDrop(e, targetSlot) {
-  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
-  if (!dragSourceId) return;
-  const card = CARDS.find(c => c.id === dragSourceId);
-  if (!card) return;
-  if (dragSourceSlot) timeline[dragSourceSlot] = timeline[dragSourceSlot].filter(c => c.id !== dragSourceId);
-  if (!timeline[targetSlot].some(c => c.id === card.id)) timeline[targetSlot].push(card);
-  dragSourceId = null; dragSourceSlot = null;
-  renderPool(); renderAllSlots(); updateBadge(); triggerInfoUpdate();
-}
-
-function removeCard(cardId, slotName) {
-  timeline[slotName] = timeline[slotName].filter(c => c.id !== cardId);
-  renderPool(); renderAllSlots(); updateBadge(); triggerInfoUpdate();
 }
 
 // ─── INFO UPDATE ─────────────────────────────────────────────────────────────
@@ -251,7 +410,6 @@ function confirmPlan() {
   updateInfoPanel();
 }
 
-// ─── TOAST ───────────────────────────────────────────────────────────────────
 let toastTimer = null;
 function showToast(msg) {
   const t = document.getElementById('toast');
