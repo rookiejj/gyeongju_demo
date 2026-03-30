@@ -969,9 +969,9 @@ body {
 }
 
 /* ══════════════════════════════════════════════
-   TABLET  (768px – 1023px)
+   TABLET  (768px – 1023px only)
 ══════════════════════════════════════════════ */
-@media (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px) {
   .layout {
     grid-template-columns: 260px 1fr;
     grid-template-rows: 1fr auto;
@@ -1058,6 +1058,7 @@ body {
     right: 0;
     bottom: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     border: none;
     padding: 16px;
     transition: opacity 0.25s, transform 0.25s;
@@ -1067,11 +1068,69 @@ body {
     background: var(--warm);
   }
 
+  /* 맞춤정보 패널 — 태블릿 값 전부 리셋 후 재정의 */
   .info-panel {
     background: var(--warm);
-    flex-direction: column;
+    display: block;
+    /* flex 해제 → 세로 블록 레이아웃 */
+    gap: 0;
     max-height: unset;
-    overflow-x: hidden;
+    border-top: none;
+    padding: 12px 14px;
+  }
+
+  .info-panel .panel-label {
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .info-panel .updating-indicator {
+    width: auto;
+  }
+
+  .info-panel #summarySection {
+    flex: unset;
+    width: 100%;
+  }
+
+  .info-panel .info-section {
+    flex: unset;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .info-panel #weatherInfo {
+    display: block;
+  }
+
+  /* 카드·링크 내부 텍스트 줄바꿈 강제 */
+  .leg-card,
+  .place-food-card,
+  .info-card,
+  .total-summary {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    word-break: break-word;
+  }
+
+  .leg-header {
+    flex-wrap: wrap;
+    row-gap: 3px;
+  }
+
+  .leg-from,
+  .leg-to {
+    min-width: 0;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .leg-option-detail {
+    min-width: 0;
+    word-break: break-word;
   }
 
   .tab-pane {
@@ -1112,11 +1171,6 @@ body {
     min-height: 70px;
   }
 
-  .placed-card {
-    max-width: 100%;
-    width: 100%;
-  }
-
   .arrow-connector {
     transform: rotate(90deg);
     align-self: flex-start;
@@ -1136,6 +1190,8 @@ body {
     gap: 10px;
     padding: 10px 14px 10px 10px;
     min-width: unset;
+    max-width: 100%;
+    width: 100%;
   }
 
   .placed-card-emoji {
