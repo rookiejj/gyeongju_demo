@@ -226,11 +226,19 @@ function confirmPlan() {
   updateInfoPanel();
 }
 
+let toastTimer = null;
 function showToast(msg) {
   const t = document.getElementById('toast');
+  clearTimeout(toastTimer);          // 이전 타이머 반드시 취소
+  t.classList.remove('show');        // 리셋
   t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  // 브라우저가 remove를 처리할 시간을 한 프레임 주고 show
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      t.classList.add('show');
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    });
+  });
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
