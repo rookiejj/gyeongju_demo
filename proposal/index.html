@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경주 타임트래블 — 서비스 제안서</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1e2d4a;
+            --gold: #d4a843;
+            --gold-light: #fdf3dc;
+            --terra: #c0673a;
+            --jade: #4a7c6f;
+            --jade-light: #e8f4f0;
+            --paper: #fdf6e8;
+            --warm: #f5ead4;
+            --border: #d4c4a0;
+            --ink: #1a1208;
+            --muted: #5a4e3a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.7;
+        }
+
+        /* NAV */
+        .topnav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--navy);
+            border-bottom: 2px solid var(--gold);
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topnav-title {
+            font-family: 'Noto Serif KR', serif;
+            color: #f0d080;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .topnav-back {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .topnav-back:hover {
+            color: var(--gold);
+        }
+
+        /* HERO */
+        .hero {
+            background: var(--navy);
+            padding: 72px 32px 56px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 50%, rgba(212, 168, 67, 0.12), transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(74, 124, 111, 0.1), transparent 60%);
+        }
+
+        .hero-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .hero-title {
+            font-family: 'Noto Serif KR', serif;
+            color: #f0d080;
+            font-size: clamp(36px, 6vw, 56px);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .hero-sub {
+            color: var(--terra);
+            font-size: clamp(14px, 2vw, 18px);
+            font-style: italic;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .hero-tags {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .hero-tag {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(212, 168, 67, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 13px;
+        }
+
+        /* CONTENT */
+        .content {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* SECTION */
+        .section {
+            margin-bottom: 64px;
+        }
+
+        .section-num {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .section-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: clamp(20px, 3vw, 26px);
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 6px;
+        }
+
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(to right, var(--gold), transparent);
+            margin-bottom: 24px;
+        }
+
+        /* SUMMARY BOX */
+        .summary-box {
+            background: var(--navy);
+            border-radius: 14px;
+            padding: 24px 28px;
+            color: #f0d080;
+            font-family: 'Noto Serif KR', serif;
+            font-size: 17px;
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        /* INFO BOX */
+        .info-box {
+            display: flex;
+            gap: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .info-box-accent {
+            width: 5px;
+            flex-shrink: 0;
+        }
+
+        .info-box-body {
+            padding: 14px 18px;
+            flex: 1;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .info-box-text {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .info-box.terra .info-box-accent {
+            background: var(--terra);
+        }
+
+        .info-box.terra .info-box-body {
+            background: #fde8e0;
+        }
+
+        .info-box.terra .info-box-title {
+            color: var(--terra);
+        }
+
+        .info-box.jade .info-box-accent {
+            background: var(--jade);
+        }
+
+        .info-box.jade .info-box-body {
+            background: var(--jade-light);
+        }
+
+        .info-box.jade .info-box-title {
+            color: var(--jade);
+        }
+
+        .info-box.gold .info-box-accent {
+            background: var(--gold);
+        }
+
+        .info-box.gold .info-box-body {
+            background: var(--gold-light);
+        }
+
+        .info-box.gold .info-box-title {
+            color: #a07820;
+        }
+
+        .info-box.navy .info-box-accent {
+            background: var(--navy);
+        }
+
+        .info-box.navy .info-box-body {
+            background: #e8ecf4;
+        }
+
+        .info-box.navy .info-box-title {
+            color: var(--navy);
+        }
+
+        /* TABLE */
+        .table-wrap {
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--navy);
+            color: #fff;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background: var(--gold-light);
+        }
+
+        .td-label {
+            font-weight: 700;
+            color: var(--navy);
+            white-space: nowrap;
+        }
+
+        .td-phase {
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+        }
+
+        .td-phase-cell {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* STEP CARDS */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .step {
+            display: flex;
+            gap: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .step-num {
+            width: 52px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .step-body {
+            padding: 14px 18px;
+            background: #fff;
+            flex: 1;
+        }
+
+        .step-body strong {
+            display: block;
+            font-size: 15px;
+            color: var(--navy);
+            margin-bottom: 4px;
+        }
+
+        .step-body span {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* RESPONSIVE TABLE — UX */
+        .ux-table table th:first-child,
+        .ux-table table td:first-child {
+            width: 100px;
+        }
+
+        /* CARD GRID */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 14px;
+        }
+
+        .story-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 18px 18px 14px 22px;
+            border: 1.5px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(26, 18, 8, 0.07);
+        }
+
+        .story-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--card-color, var(--gold));
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .card-emoji {
+            font-size: 24px;
+        }
+
+        .card-name {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .card-era {
+            font-size: 10px;
+            color: #999;
+            margin-top: 1px;
+        }
+
+        .card-story {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.75;
+            margin-bottom: 10px;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .card-tag {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--warm);
+            color: #888;
+            border: 1px solid var(--border);
+        }
+
+        /* FEATURE TABLE */
+        .feature-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .feature-row {
+            display: grid;
+            grid-template-columns: 160px 1fr 1fr;
+            gap: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .feature-label {
+            background: var(--navy);
+            color: #fff;
+            padding: 14px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-ux {
+            background: var(--gold-light);
+            padding: 14px 16px;
+            font-size: 13px;
+            color: var(--ink);
+            border-right: 1px solid var(--border);
+        }
+
+        .feature-effect {
+            background: #fff;
+            padding: 14px 16px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* DIFF */
+        .diff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .diff-col {
+            background: #fff;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            padding: 18px;
+        }
+
+        .diff-col.good {
+            border-color: var(--jade);
+        }
+
+        .diff-col-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .diff-item {
+            font-size: 13px;
+            color: var(--muted);
+            padding: 4px 0;
+            display: flex;
+            gap: 8px;
+        }
+
+        .diff-item::before {
+            content: '–';
+            color: var(--terra);
+            flex-shrink: 0;
+        }
+
+        .diff-col.good .diff-item::before {
+            content: '✓';
+            color: var(--jade);
+            font-weight: 700;
+        }
+
+        /* ROADMAP */
+        .roadmap {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1.5px solid var(--border);
+        }
+
+        .roadmap-row {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .roadmap-row:last-child {
+            border-bottom: none;
+        }
+
+        .roadmap-phase {
+            width: 130px;
+            flex-shrink: 0;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .roadmap-content {
+            padding: 14px 18px;
+            font-size: 13px;
+            color: var(--ink);
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 640px) {
+            .hero {
+                padding: 48px 20px 40px;
+            }
+
+            .content {
+                padding: 32px 16px 60px;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-row {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-label {
+                border-radius: 0;
+            }
+
+            .diff-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .roadmap-phase {
+                width: 90px;
+                font-size: 11px;
+            }
+
+            .ux-table table {
+                font-size: 12px;
+            }
+
+            .topnav {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="../src/css/nav.css">
+</head>
+
+<body>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-label">2026 관광데이터 활용 공모전 · 웹·앱 개발 부문</div>
+        <h1 class="hero-title">경주 타임트래블</h1>
+        <p class="hero-sub">신라 천년의 이야기를 나의 하루로</p>
+        <div class="hero-tags">
+            <span class="hero-tag">한국관광공사 OpenAPI</span>
+            <span class="hero-tag">경주 지역 특화</span>
+            <span class="hero-tag">웹·앱 반응형</span>
+            <span class="hero-tag">2030 타겟</span>
+        </div>
+    </section>
+
+    <div class="content">
+
+        <!-- 1. 서비스 개요 -->
+        <section class="section">
+            <div class="section-num">01</div>
+            <h2 class="section-title">서비스 개요</h2>
+            <div class="section-divider"></div>
+            <div class="summary-box">
+                유적지마다 담긴 역사 스토리 카드를 드래그해 나만의 하루 여정을 완성하면,<br>
+                이동 구간별 교통편 · 명소별 맛집 · 날씨가 실시간으로 업데이트되는<br>
+                경주 전용 여행 플래너
+            </div>
+            <div class="info-box terra">
+                <div class="info-box-accent"></div>
+                <div class="info-box-body">
+                    <div class="info-box-title">기존 여행 앱의 한계</div>
+                    <div class="info-box-text">검색→선택→저장의 단순 반복 구조. 각 명소의 역사적 맥락 없이 위치 정보만 제공되며, 순서를 바꿀 때마다 교통편을 다시 찾아야
+                        하는 번거로움이 있다.</div>
+                </div>
+            </div>
+            <div class="info-box jade">
+                <div class="info-box-accent"></div>
+                <div class="info-box-body">
+                    <div class="info-box-title">경주 타임트래블의 해법</div>
+                    <div class="info-box-text">"스토리로 먼저 흥미를 유발하고, 순서 배치와 동시에 모든 실용 정보가 자동으로 완성된다." 사용자는 이야기를 읽고 고르는 것만으로
+                        완벽한 여정이 완성된다.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 공모전 요건 -->
+        <section class="section">
+            <div class="section-num">02</div>
+            <h2 class="section-title">공모전 요건 부합성</h2>
+            <div class="section-divider"></div>
+            <div class="table-wrap">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="td-label">공모 주제</td>
+                            <td>한국관광공사 OpenAPI 필수 활용 — 관광지 정보·운영시간·혼잡도·입장료 실시간 연동</td>
+                        </tr>
+                        <tr>
+                            <td class="td-label">지역 특화</td>
+                            <td>경주시 단일 지역 집중 → <strong>가점 항목 해당</strong> (서울 외 1개 지역 특화 서비스)</td>
+                        </tr>
+                        <tr>
+                            <td class="td-label">대상 플랫폼</td>
+                            <td>웹(PC/모바일 반응형) + 앱 동시 지원 — 공모 부문 웹·앱 개발 직접 부합</td>
+                        </tr>
+                        <tr>
+                            <td class="td-label">주요 이용층</td>
+                            <td>2030 국내 여행자 — 역사 콘텐츠를 감성적으로 소비하는 핵심 세대</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. 핵심 UX -->
+        <section class="section">
+            <div class="section-num">03</div>
+            <h2 class="section-title">핵심 UX — 스토리 카드 타임라인</h2>
+            <div class="section-divider"></div>
+            <p style="font-size:15px;font-weight:700;margin-bottom:18px;">사용자는 세 가지 동작만으로 여정을 완성한다.</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num" style="background:var(--terra)">①</div>
+                    <div class="step-body"><strong>카드 읽기</strong><span>각 유적지의 역사 일화·비화가 담긴 스토리 카드를 훑어본다</span></div>
+                </div>
+                <div class="step">
+                    <div class="step-num" style="background:var(--jade)">②</div>
+                    <div class="step-body"><strong>카드 배치</strong><span>흥미로운 카드를 오전·오후·저녁 타임라인에 드래그(PC) 또는 탭(모바일)으로
+                            배치한다</span></div>
+                </div>
+                <div class="step">
+                    <div class="step-num" style="background:var(--navy)">③</div>
+                    <div class="step-body"><strong>정보 확인</strong><span>배치 즉시 — 이동 구간별 교통편, 명소별 맛집, 예상 소요시간이 자동으로
+                            완성된다</span></div>
+                </div>
+            </div>
+            <p style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;">반응형 인터랙션 설계</p>
+            <div class="table-wrap ux-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>환경</th>
+                            <th>PC / 웹</th>
+                            <th>모바일 / 앱</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="td-label">카드 추가</td>
+                            <td>드래그 앤 드롭</td>
+                            <td>탭 → 바텀시트에서 시간대 선택</td>
+                        </tr>
+                        <tr>
+                            <td class="td-label">순서 변경</td>
+                            <td>카드 간 드래그로 원하는 위치에 삽입</td>
+                            <td>롱프레스 후 드래그 (진동 피드백 포함)</td>
+                        </tr>
+                        <tr>
+                            <td class="td-label">레이아웃</td>
+                            <td>3단 분할 (카드풀 · 타임라인 · 맞춤정보)</td>
+                            <td>하단 탭바 (카드선택 · 내여정 · 맞춤정보)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. 스토리 카드 -->
+        <section class="section">
+            <div class="section-num">04</div>
+            <h2 class="section-title">콘텐츠 — 경주 스토리 카드 <span
+                    style="font-size:14px;color:var(--terra);font-weight:400">(추가 예정)</span></h2>
+            <div class="section-divider"></div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">딱딱한 위치 정보 대신, 역사 비화와 흥미로운 일화로 방문 동기를 만든다.
+            </p>
+            <div class="card-grid">
+                <div class="story-card" style="--card-color:#c0673a">
+                    <div class="card-header"><span class="card-emoji">🏯</span>
+                        <div>
+                            <div class="card-name">불국사</div>
+                            <div class="card-era">통일신라 · 751년</div>
+                        </div>
+                    </div>
+                    <p class="card-story">재상 김대성은 전생의 부모를 위해 석굴암을, 현생의 부모를 위해 불국사를 지었다. 죽을 때까지 완성을 못 보고 눈을 감았고, 나라가 공사를
+                        이어받아 마쳤다.</p>
+                    <div class="card-tags"><span class="card-tag">유네스코</span><span class="card-tag">사찰</span><span
+                            class="card-tag">역사</span></div>
+                </div>
+                <div class="story-card" style="--card-color:#7d6a52">
+                    <div class="card-header"><span class="card-emoji">🪨</span>
+                        <div>
+                            <div class="card-name">석굴암</div>
+                            <div class="card-era">통일신라 · 774년</div>
+                        </div>
+                    </div>
+                    <p class="card-story">본존불은 매년 춘분 새벽, 동해 첫 햇살이 이마의 보석에 정확히 닿도록 설계됐다. 나침반도 없던 시대에 방위각 오차는 불과 0.4도.</p>
+                    <div class="card-tags"><span class="card-tag">유네스코</span><span class="card-tag">불상</span><span
+                            class="card-tag">등산</span></div>
+                </div>
+                <div class="story-card" style="--card-color:#4a7c6f">
+                    <div class="card-header"><span class="card-emoji">🔭</span>
+                        <div>
+                            <div class="card-name">첨성대</div>
+                            <div class="card-era">신라 · 선덕여왕</div>
+                        </div>
+                    </div>
+                    <p class="card-story">돌 362개=1년 365일, 27단=27대 왕 선덕여왕, 창문 위아래 12단씩=24절기. 건물 자체가 달력이다. 1,400년 동안 기울거나
+                        무너지지 않았다.</p>
+                    <div class="card-tags"><span class="card-tag">천문대</span><span class="card-tag">야경</span><span
+                            class="card-tag">도심</span></div>
+                </div>
+                <div class="story-card" style="--card-color:#1e2d4a">
+                    <div class="card-header"><span class="card-emoji">🌕</span>
+                        <div>
+                            <div class="card-name">동궁과 월지</div>
+                            <div class="card-era">통일신라 · 674년</div>
+                        </div>
+                    </div>
+                    <p class="card-story">1975년 준설 중 3만여 점 유물이 쏟아졌다. 그 안엔 14면 주사위도 있었는데, 각 면엔 "술 석 잔 연속 마시기", "코를 손가락으로
+                        튕기기" 같은 벌칙이 새겨져 있었다.</p>
+                    <div class="card-tags"><span class="card-tag">야경</span><span class="card-tag">연못</span><span
+                            class="card-tag">야간개장</span></div>
+                </div>
+                <div class="story-card" style="--card-color:#5a8a3e">
+                    <div class="card-header"><span class="card-emoji">⛰️</span>
+                        <div>
+                            <div class="card-name">대릉원</div>
+                            <div class="card-era">신라 · 1–5세기</div>
+                        </div>
+                    </div>
+                    <p class="card-story">1973년 천마총에서 그림 하나가 나왔다. 신라 최초의 회화인데, 말인지 기린인지 학자들이 50년 넘게 논쟁 중. 현재 이름은 "천마"지만
+                        반론은 여전히 현재진행형.</p>
+                    <div class="card-tags"><span class="card-tag">왕릉</span><span class="card-tag">천마총</span><span
+                            class="card-tag">도심</span></div>
+                </div>
+                <div class="story-card" style="--card-color:#8b6914">
+                    <div class="card-header"><span class="card-emoji">🏛</span>
+                        <div>
+                            <div class="card-name">국립경주박물관</div>
+                            <div class="card-era">상설전시</div>
+                        </div>
+                    </div>
+                    <p class="card-story">에밀레종은 타종 후 울림이 3분 이상 지속된다. 구리 18.9톤 합금인데, 그 울림의 비밀은 아직도 완전히 규명되지 않았다.</p>
+                    <div class="card-tags"><span class="card-tag">박물관</span><span class="card-tag">에밀레종</span><span
+                            class="card-tag">실내</span></div>
+                </div>
+                <div class="story-card" style="--card-color:#b8426a">
+                    <div class="card-header"><span class="card-emoji">🛍</span>
+                        <div>
+                            <div class="card-name">황리단길</div>
+                            <div class="card-era">현대 · 감성거리</div>
+                        </div>
+                    </div>
+                    <p class="card-story">임대료를 피해 들어온 청년 사장들이 고택 한 칸씩 카페로 고치기 시작했다. 지금은 주말 유동인구 2만 명. 핫플이 된 뒤 임대료가 올라 초기
+                        멤버들이 밀려나고 있다는 아이러니.</p>
+                    <div class="card-tags"><span class="card-tag">카페</span><span class="card-tag">감성</span><span
+                            class="card-tag">인스타</span></div>
+                </div>
+                <div class="story-card" style="--card-color:#6b5344">
+                    <div class="card-header"><span class="card-emoji">🏘</span>
+                        <div>
+                            <div class="card-name">양동마을</div>
+                            <div class="card-era">조선 · 500년 전통</div>
+                        </div>
+                    </div>
+                    <p class="card-story">조선 성리학자 이언적과 문신 손중돈의 집안이 500년째 한 마을에 산다. 두 가문은 혼인도 안 하고 담장도 안 넘는다는 불문율이 지금도
+                        이어지고 있다.</p>
+                    <div class="card-tags"><span class="card-tag">민속마을</span><span class="card-tag">유네스코</span><span
+                            class="card-tag">전통</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 맞춤 정보 -->
+        <section class="section">
+            <div class="section-num">05</div>
+            <h2 class="section-title">실시간 맞춤 정보 시스템</h2>
+            <div class="section-divider"></div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">카드 배치가 바뀔 때마다 0.6초 내에 아래 세 가지 정보가 자동
+                업데이트된다.</p>
+            <div class="feature-grid">
+                <div class="feature-row">
+                    <div class="feature-label">🚌 구간별 교통편</div>
+                    <div class="feature-ux">"경주역 → 불국사", "불국사 → 석굴암" 등 이동 구간마다 버스·택시·도보 옵션을 각각 표시</div>
+                    <div class="feature-effect">순서를 바꿀 때마다 교통편을 따로 검색하던 번거로움 제거</div>
+                </div>
+                <div class="feature-row">
+                    <div class="feature-label">🍽 명소별 맛집</div>
+                    <div class="feature-ux">배치된 카드 각각의 주변 맛집을 별도로 추천 (불국사 근처 돌솥밥, 황리단길 한옥 카페 등)</div>
+                    <div class="feature-effect">어느 곳을 방문하든 근처 식당 정보가 자동 완성</div>
+                </div>
+                <div class="feature-row">
+                    <div class="feature-label">📊 여정 요약</div>
+                    <div class="feature-ux">선택 명소 수, 예상 총 소요 시간, 이동 거리를 즉시 집계</div>
+                    <div class="feature-effect">무리한 일정 없이 현실적인 하루 계획 수립 가능</div>
+                </div>
+                <div class="feature-row">
+                    <div class="feature-label">🌤 날씨 안내</div>
+                    <div class="feature-ux">경주 당일 기온·미세먼지·자외선 정보와 추천 준비물 표시</div>
+                    <div class="feature-effect">계절·날씨에 따른 방문지 재조합 유도</div>
+                </div>
+            </div>
+            <div class="info-box gold" style="margin-top:16px">
+                <div class="info-box-accent"></div>
+                <div class="info-box-body">
+                    <div class="info-box-title">※ 업데이트 응답 속도 안내</div>
+                    <div class="info-box-text">맞춤 정보는 카드 배치 변경 후 0.6초 내 갱신을 목표로 설계되었습니다. 다만 한국관광공사 OpenAPI 서버 응답 속도 및
+                        네트워크 환경에 따라 실시간 반영이 다소 지연될 수 있으며, 이 경우 "여정 확정" 버튼을 통해 일괄 조회하는 방식으로 안정적인 정보 제공이 가능합니다. 최종 제출
+                        버전에서는 API 캐싱 전략을 적용하여 체감 응답 속도를 최소화할 예정입니다.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. 차별화 -->
+        <section class="section">
+            <div class="section-num">06</div>
+            <h2 class="section-title">차별화 포인트</h2>
+            <div class="section-divider"></div>
+            <div class="diff-grid">
+                <div class="diff-col">
+                    <div class="diff-col-title" style="color:var(--terra)">기존 여행 플래너의 한계</div>
+                    <div class="diff-item">네이버 지도·카카오맵: 위치 검색 중심, 스토리 없음</div>
+                    <div class="diff-item">트리플·마이리얼트립: 찜 목록 방식, 순서 변경 시 정보 미갱신</div>
+                    <div class="diff-item">경주시 공식 앱: 단방향 안내, 사용자 커스텀 불가</div>
+                </div>
+                <div class="diff-col good">
+                    <div class="diff-col-title" style="color:var(--jade)">경주 타임트래블의 강점</div>
+                    <div class="diff-item">스토리 우선 — 흥미 유발 후 방문 동기 자연 생성</div>
+                    <div class="diff-item">배치 즉시 갱신 — 교통·맛집 정보를 매번 검색할 필요 없음</div>
+                    <div class="diff-item">경주 단일 특화 — 깊이 있는 로컬 콘텐츠 큐레이션</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. 향후 계획 -->
+        <section class="section">
+            <div class="section-num">07</div>
+            <h2 class="section-title">향후 발전 계획</h2>
+            <div class="section-divider"></div>
+            <div class="roadmap">
+                <div class="roadmap-row">
+                    <div class="roadmap-phase" style="background:var(--terra)">1단계<br>(공모전)</div>
+                    <div class="roadmap-content">한국관광공사 OpenAPI 연동 — 실시간 운영시간, 혼잡도, 입장료 반영</div>
+                </div>
+                <div class="roadmap-row">
+                    <div class="roadmap-phase" style="background:#2c3e6a">2단계<br>(출시)</div>
+                    <div class="roadmap-content">카카오맵 API 연동 — 실제 대중교통 경로·소요 시간 자동 계산</div>
+                </div>
+                <div class="roadmap-row">
+                    <div class="roadmap-phase" style="background:var(--navy)">3단계<br>(확장)</div>
+                    <div class="roadmap-content">퀘스트·스탬프 투어 — 방문 완료 체크 시 로컬 쿠폰 발급</div>
+                </div>
+                <div class="roadmap-row">
+                    <div class="roadmap-phase" style="background:var(--jade)">4단계<br>(성장)</div>
+                    <div class="roadmap-content">내 여정 공유 카드 — SNS 공유용 이미지 자동 생성, 바이럴 유도</div>
+                </div>
+                <div class="roadmap-row">
+                    <div class="roadmap-phase" style="background:#4a3f2e">장기 목표</div>
+                    <div class="roadmap-content">경주 외 타 지역 확장 (전주, 안동, 강릉 등) — 전국 역사 여행 플랫폼화</div>
+                </div>
+            </div>
+            <div class="info-box jade" style="margin-top:16px">
+                <div class="info-box-accent"></div>
+                <div class="info-box-body">
+                    <div class="info-box-title">※ 공모전 기간 내 추가 구현 가능성</div>
+                    <div class="info-box-text">위 단계별 로드맵은 안정적인 서비스 완성도를 기준으로 수립한 계획이며, 공모전 컨설팅 및 심사 피드백, 팀 역량 집중 여부에 따라
+                        2단계 이상의 기능이 1단계(공모전 제출 버전)에 선반영될 수 있습니다. 특히 카카오맵 실경로 연동 및 스탬프 투어 기능은 개발 우선순위를 높여 조기 적용을 검토 중입니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="../src/js/nav.js"></script>
+</body>
+
+</html>

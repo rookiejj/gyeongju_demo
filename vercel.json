@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+        {
+            "source": "/proposal",
+            "destination": "/proposal/index.html"
+        },
+        {
+            "source": "/contest",
+            "destination": "/contest/index.html"
+        }
+    ]
+}
