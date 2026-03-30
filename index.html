@@ -23,17 +23,17 @@
 <div class="layout">
 
   <!-- LEFT: CARD POOL -->
-  <aside class="card-pool">
+  <aside class="card-pool tab-pane active" id="pane-cards">
     <div class="panel-label">📜 스토리 카드</div>
-    <div class="pool-hint">카드를 드래그해서 오른쪽 타임라인에 배치하세요. 배치 순서에 따라 교통·맛집 정보가 바뀝니다!</div>
+    <div class="pool-hint" id="poolHint">카드를 드래그해서 타임라인에 배치하세요. 배치 순서에 따라 교통·맛집 정보가 바뀝니다!</div>
     <div id="cardPool"></div>
   </aside>
 
   <!-- CENTER: TIMELINE -->
-  <main class="timeline-area">
+  <main class="timeline-area tab-pane" id="pane-timeline">
     <div class="timeline-header">
       <div class="timeline-title">나의 경주 여정</div>
-      <div class="timeline-date">📅 당일치기 / 하루</div>
+      <div class="timeline-date">📅 당일치기</div>
     </div>
 
     <div class="time-slot">
@@ -43,7 +43,7 @@
       </div>
       <div class="slot-drop-zone" id="slot-morning" data-slot="morning"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event, 'morning')">
-        <div class="slot-empty-hint">☀️ 오전 방문지를 여기에 배치하세요</div>
+        <div class="slot-empty-hint">☀️ 오전 방문지를 배치하세요</div>
       </div>
     </div>
 
@@ -54,7 +54,7 @@
       </div>
       <div class="slot-drop-zone" id="slot-afternoon" data-slot="afternoon"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event, 'afternoon')">
-        <div class="slot-empty-hint">🏛 오후 방문지를 여기에 배치하세요</div>
+        <div class="slot-empty-hint">🏛 오후 방문지를 배치하세요</div>
       </div>
     </div>
 
@@ -65,13 +65,13 @@
       </div>
       <div class="slot-drop-zone" id="slot-evening" data-slot="evening"
         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event, 'evening')">
-        <div class="slot-empty-hint">🌙 저녁 방문지를 여기에 배치하세요</div>
+        <div class="slot-empty-hint">🌙 저녁 방문지를 배치하세요</div>
       </div>
     </div>
   </main>
 
   <!-- RIGHT: INFO PANEL -->
-  <aside class="info-panel">
+  <aside class="info-panel tab-pane" id="pane-info">
     <div class="panel-label">✨ 맞춤 정보</div>
     <div class="updating-indicator" id="updatingIndicator">
       <div class="dot-anim"><span></span><span></span><span></span></div>
@@ -104,6 +104,49 @@
     </div>
   </aside>
 
+</div>
+
+<!-- MOBILE BOTTOM TAB NAV -->
+<nav class="mobile-tab-nav">
+  <button class="tab-btn active" id="tab-cards" onclick="switchTab('cards')">
+    <span class="tab-icon">📜</span>
+    <span>카드 선택</span>
+  </button>
+  <button class="tab-btn" id="tab-timeline" onclick="switchTab('timeline')">
+    <span class="tab-icon">🗓</span>
+    <span>내 여정</span>
+    <span class="tab-badge" id="timelineBadge" style="display:none">0</span>
+  </button>
+  <button class="tab-btn" id="tab-info" onclick="switchTab('info')">
+    <span class="tab-icon">✨</span>
+    <span>맞춤 정보</span>
+  </button>
+</nav>
+
+<!-- MOBILE BOTTOM SHEET: slot selector -->
+<div class="bottom-sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-card-preview" id="sheetCardPreview"></div>
+  <div class="sheet-title">어느 시간대에 추가할까요?</div>
+  <div class="sheet-slots">
+    <button class="sheet-slot-btn morning" onclick="addToSlot('morning')">
+      <div class="sheet-slot-icon">☀️</div>
+      <div class="sheet-slot-label">오전</div>
+      <div class="sheet-slot-time">09–12시</div>
+    </button>
+    <button class="sheet-slot-btn afternoon" onclick="addToSlot('afternoon')">
+      <div class="sheet-slot-icon">🌤</div>
+      <div class="sheet-slot-label">오후</div>
+      <div class="sheet-slot-time">12–17시</div>
+    </button>
+    <button class="sheet-slot-btn evening" onclick="addToSlot('evening')">
+      <div class="sheet-slot-icon">🌙</div>
+      <div class="sheet-slot-label">저녁</div>
+      <div class="sheet-slot-time">17–21시</div>
+    </button>
+  </div>
+  <button class="sheet-cancel" onclick="closeSheet()">취소</button>
 </div>
 
 <div class="toast" id="toast"></div>

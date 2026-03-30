@@ -1,17 +1,83 @@
-// ─── STATE ──────────────────────────────────────────────────────────────────
+// ─── MOBILE DETECTION ────────────────────────────────────────────────────────
+const isMobile = () => window.innerWidth <= 767;
+
+// ─── MOBILE: TAB SWITCHING ───────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pane-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ─── MOBILE: BOTTOM SHEET ────────────────────────────────────────────────────
+let pendingCardId = null;
+
+function openSheet(cardId) {
+  pendingCardId = cardId;
+  const card = CARDS.find(c => c.id === cardId);
+  const preview = document.getElementById('sheetCardPreview');
+  preview.style.setProperty('--card-accent', card.accent);
+  preview.innerHTML = `
+    <div class="sheet-card-preview-emoji">${card.emoji}</div>
+    <div class="sheet-card-info">
+      <div class="sheet-card-name">${card.name}</div>
+      <div class="sheet-card-era">${card.era}</div>
+    </div>`;
+  document.getElementById('sheetOverlay').classList.add('show');
+  document.getElementById('bottomSheet').classList.add('show');
+}
+
+function closeSheet() {
+  pendingCardId = null;
+  document.getElementById('sheetOverlay').classList.remove('show');
+  document.getElementById('bottomSheet').classList.remove('show');
+}
+
+function addToSlot(slotName) {
+  if (!pendingCardId) return;
+  const card = CARDS.find(c => c.id === pendingCardId);
+  if (card && !timeline[slotName].some(c => c.id === card.id)) {
+    ['morning','afternoon','evening'].forEach(s => {
+      timeline[s] = timeline[s].filter(c => c.id !== pendingCardId);
+    });
+    timeline[slotName].push(card);
+  }
+  closeSheet();
+  renderPool(); renderAllSlots(); updateBadge(); triggerInfoUpdate();
+  const slotKo = slotName === 'morning' ? '오전' : slotName === 'afternoon' ? '오후' : '저녁';
+  showToast(`${card.name}을(를) ${slotKo}에 추가했어요!`);
+}
+
+// ─── BADGE ───────────────────────────────────────────────────────────────────
+function updateBadge() {
+  const total = [...timeline.morning, ...timeline.afternoon, ...timeline.evening].length;
+  const badge = document.getElementById('timelineBadge');
+  badge.style.display = total > 0 ? 'block' : 'none';
+  badge.textContent = total;
+}
+
+// ─── POOL HINT ───────────────────────────────────────────────────────────────
+function updatePoolHint() {
+  const hint = document.getElementById('poolHint');
+  if (!hint) return;
+  hint.textContent = isMobile()
+    ? '카드를 탭하면 시간대를 선택해 여정에 추가할 수 있어요!'
+    : '카드를 드래그해서 타임라인에 배치하세요. 배치 순서에 따라 교통·맛집 정보가 바뀝니다!';
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
 const timeline = { morning: [], afternoon: [], evening: [] };
 let dragSourceId   = null;
-let dragSourceSlot = null; // null = 카드풀에서 드래그
+let dragSourceSlot = null;
 let updateTimer    = null;
 
-// ─── RENDER: CARD POOL ──────────────────────────────────────────────────────
+// ─── RENDER: CARD POOL ───────────────────────────────────────────────────────
 function renderPool() {
   const pool = document.getElementById('cardPool');
   pool.innerHTML = '';
   CARDS.forEach(card => {
     const placed = Object.values(timeline).flat().some(c => c.id === card.id);
     if (placed) return;
-
     const el = document.createElement('div');
     el.className = 'story-card';
     el.style.setProperty('--card-accent', card.accent);
@@ -25,25 +91,23 @@ function renderPool() {
       <div class="card-tags">${card.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
     `;
     el.addEventListener('dragstart', e => {
-      dragSourceId   = card.id;
-      dragSourceSlot = null;
+      dragSourceId = card.id; dragSourceSlot = null;
       el.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
     });
     el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    el.addEventListener('click', () => { if (isMobile()) openSheet(card.id); });
     pool.appendChild(el);
   });
 }
 
-// ─── RENDER: TIMELINE SLOT ──────────────────────────────────────────────────
+// ─── RENDER: SLOT ────────────────────────────────────────────────────────────
 function renderSlot(slotName) {
   const zone  = document.getElementById('slot-' + slotName);
   const hint  = zone.querySelector('.slot-empty-hint');
   const cards = timeline[slotName];
-
   zone.querySelectorAll('.placed-card, .arrow-connector').forEach(e => e.remove());
   if (hint) hint.style.display = cards.length === 0 ? 'block' : 'none';
-
   cards.forEach((card, idx) => {
     if (idx > 0) {
       const arrow = document.createElement('div');
@@ -57,14 +121,13 @@ function renderSlot(slotName) {
     el.draggable = true;
     el.dataset.cardId = card.id;
     el.innerHTML = `
-      <button class="remove-btn" onclick="removeCard('${card.id}','${slotName}')">✕</button>
       <div class="placed-card-emoji">${card.emoji}</div>
       <div class="placed-card-name">${card.name}</div>
       <div class="placed-card-duration">⏱ ${card.duration}</div>
+      <button class="remove-btn" onclick="removeCard('${card.id}','${slotName}')">✕</button>
     `;
     el.addEventListener('dragstart', e => {
-      dragSourceId   = card.id;
-      dragSourceSlot = slotName;
+      dragSourceId = card.id; dragSourceSlot = slotName;
       el.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
     });
@@ -74,163 +137,92 @@ function renderSlot(slotName) {
 }
 
 function renderAllSlots() {
-  ['morning', 'afternoon', 'evening'].forEach(renderSlot);
+  ['morning','afternoon','evening'].forEach(renderSlot);
 }
 
 // ─── DRAG & DROP ─────────────────────────────────────────────────────────────
-function onDragOver(e) {
-  e.preventDefault();
-  e.currentTarget.classList.add('drag-over');
-}
-function onDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
-}
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
 function onDrop(e, targetSlot) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
   if (!dragSourceId) return;
-
   const card = CARDS.find(c => c.id === dragSourceId);
   if (!card) return;
-
-  // 기존 슬롯에서 제거
-  if (dragSourceSlot) {
-    timeline[dragSourceSlot] = timeline[dragSourceSlot].filter(c => c.id !== dragSourceId);
-  }
-  // 대상 슬롯에 추가 (중복 방지)
-  if (!timeline[targetSlot].some(c => c.id === card.id)) {
-    timeline[targetSlot].push(card);
-  }
-
-  dragSourceId   = null;
-  dragSourceSlot = null;
-  renderPool();
-  renderAllSlots();
-  triggerInfoUpdate();
+  if (dragSourceSlot) timeline[dragSourceSlot] = timeline[dragSourceSlot].filter(c => c.id !== dragSourceId);
+  if (!timeline[targetSlot].some(c => c.id === card.id)) timeline[targetSlot].push(card);
+  dragSourceId = null; dragSourceSlot = null;
+  renderPool(); renderAllSlots(); updateBadge(); triggerInfoUpdate();
 }
 
 function removeCard(cardId, slotName) {
   timeline[slotName] = timeline[slotName].filter(c => c.id !== cardId);
-  renderPool();
-  renderAllSlots();
-  triggerInfoUpdate();
+  renderPool(); renderAllSlots(); updateBadge(); triggerInfoUpdate();
 }
 
-// ─── INFO PANEL UPDATE ───────────────────────────────────────────────────────
+// ─── INFO UPDATE ─────────────────────────────────────────────────────────────
 function triggerInfoUpdate() {
-  const indicator = document.getElementById('updatingIndicator');
-  indicator.classList.add('show');
+  const ind = document.getElementById('updatingIndicator');
+  ind.classList.add('show');
   clearTimeout(updateTimer);
-  updateTimer = setTimeout(() => {
-    updateInfoPanel();
-    indicator.classList.remove('show');
-  }, 600);
+  updateTimer = setTimeout(() => { updateInfoPanel(); ind.classList.remove('show'); }, 600);
 }
 
 function updateInfoPanel() {
   const allCards = [...timeline.morning, ...timeline.afternoon, ...timeline.evening];
-
   if (allCards.length === 0) {
-    document.getElementById('transportInfo').innerHTML =
-      '<div class="info-empty">카드를 타임라인에 배치하면<br>이동 구간별 교통편을 알려드릴게요!</div>';
-    document.getElementById('foodInfo').innerHTML =
-      '<div class="info-empty">방문지마다 근처 맛집을<br>추천해드릴게요!</div>';
+    document.getElementById('transportInfo').innerHTML = '<div class="info-empty">카드를 타임라인에 배치하면<br>이동 구간별 교통편을 알려드릴게요!</div>';
+    document.getElementById('foodInfo').innerHTML = '<div class="info-empty">방문지마다 근처 맛집을<br>추천해드릴게요!</div>';
     document.getElementById('summarySection').innerHTML = '';
     return;
   }
-
-  // 전체 순서 배열 생성
   const sequence = [];
-  ['morning', 'afternoon', 'evening'].forEach(slot => {
-    timeline[slot].forEach(card => sequence.push({ card, slot }));
-  });
+  ['morning','afternoon','evening'].forEach(slot => timeline[slot].forEach(card => sequence.push({ card, slot })));
+  const slotLabel = { morning:'오전', afternoon:'오후', evening:'저녁' };
 
-  const slotLabel = { morning: '오전', afternoon: '오후', evening: '저녁' };
-
-  // ── 교통편: 구간별 ──────────────────────────────────────────────────────
-  let transportHTML = '';
+  // Transport
+  let tHTML = '';
   for (let i = 0; i < sequence.length; i++) {
-    const fromId   = i === 0 ? 'START' : sequence[i - 1].card.id;
-    const fromName = i === 0 ? '경주역 (출발)' : sequence[i - 1].card.name;
-    const toId     = sequence[i].card.id;
-    const toName   = sequence[i].card.name;
-    const slot     = sequence[i].slot;
-    const key      = `${fromId}_${toId}`;
-    const options  = LEG_TRANSPORT[key] || [{ icon: '🗺', desc: '경주 시티투어버스 1일권 이용', time: '15,000원 · 주요 명소 순환' }];
-
-    transportHTML += `
-      <div class="leg-card">
-        <div class="leg-header">
-          <span class="leg-from">${fromName}</span>
-          <span class="leg-arrow">▶</span>
-          <span class="leg-to">${toName}</span>
-          <span class="leg-slot-badge ${slot}">${slotLabel[slot]}</span>
-        </div>
-        <div class="leg-options">
-          ${options.map(opt => `
-            <div class="leg-option">
-              <div class="leg-option-icon">${opt.icon}</div>
-              <div class="leg-option-detail">
-                ${opt.desc}<br>
-                <span class="leg-option-time">${opt.time}</span>
-              </div>
-            </div>`).join('')}
-        </div>
-      </div>`;
+    const fromId   = i === 0 ? 'START' : sequence[i-1].card.id;
+    const fromName = i === 0 ? '경주역 (출발)' : sequence[i-1].card.name;
+    const { card, slot } = sequence[i];
+    const options = LEG_TRANSPORT[`${fromId}_${card.id}`] || [{ icon:'🗺', desc:'경주 시티투어버스 1일권', time:'15,000원 · 주요 명소 순환' }];
+    tHTML += `<div class="leg-card">
+      <div class="leg-header"><span class="leg-from">${fromName}</span><span class="leg-arrow">▶</span><span class="leg-to">${card.name}</span><span class="leg-slot-badge ${slot}">${slotLabel[slot]}</span></div>
+      <div class="leg-options">${options.map(o=>`<div class="leg-option"><div class="leg-option-icon">${o.icon}</div><div class="leg-option-detail">${o.desc}<br><span class="leg-option-time">${o.time}</span></div></div>`).join('')}</div>
+    </div>`;
   }
-  document.getElementById('transportInfo').innerHTML = transportHTML;
+  document.getElementById('transportInfo').innerHTML = tHTML;
 
-  // ── 맛집: 명소별 ────────────────────────────────────────────────────────
-  let foodHTML = '';
+  // Food
+  let fHTML = '';
   allCards.forEach(card => {
-    const data = CARD_FOOD[card.id];
-    if (!data) return;
-    foodHTML += `
-      <div class="place-food-card">
-        <div class="place-food-header">
-          <span class="place-emoji">${card.emoji}</span>
-          <span>${card.name}</span>
-          <span class="place-sub">· ${data.label}</span>
-        </div>
-        <div class="food-list">
-          ${data.items.map(f => `
-            <div class="food-item">
-              <div style="font-size:18px;flex-shrink:0">${f.emoji}</div>
-              <div class="food-detail">
-                <div class="food-name">${f.name}</div>
-                ${f.desc}
-              </div>
-            </div>`).join('')}
-        </div>
-      </div>`;
+    const data = CARD_FOOD[card.id]; if (!data) return;
+    fHTML += `<div class="place-food-card">
+      <div class="place-food-header"><span class="place-emoji">${card.emoji}</span><span>${card.name}</span><span class="place-sub">· ${data.label}</span></div>
+      <div class="food-list">${data.items.map(f=>`<div class="food-item"><div style="font-size:18px;flex-shrink:0">${f.emoji}</div><div class="food-detail"><div class="food-name">${f.name}</div>${f.desc}</div></div>`).join('')}</div>
+    </div>`;
   });
-  document.getElementById('foodInfo').innerHTML =
-    foodHTML || '<div class="info-empty">맛집 정보를 불러오는 중...</div>';
+  document.getElementById('foodInfo').innerHTML = fHTML || '<div class="info-empty">맛집 정보를 불러오는 중...</div>';
 
-  // ── 요약 ──────────────────────────────────────────────────────────────────
-  const totalHours = allCards.reduce((sum, c) => {
-    return sum + parseInt(c.duration.split('–')[0]) + 0.5;
-  }, 0);
-  const hasEast     = allCards.some(c => ['bulguksa', 'seokguram'].includes(c.id));
-  const hasYangdong = allCards.some(c => c.id === 'yangdong');
-
+  // Summary
+  const totalH = allCards.reduce((s,c) => s + parseInt(c.duration.split('–')[0]) + 0.5, 0);
+  const hasEast = allCards.some(c=>['bulguksa','seokguram'].includes(c.id));
+  const hasYd   = allCards.some(c=>c.id==='yangdong');
   document.getElementById('summarySection').innerHTML = `
     <div class="total-summary">
       <div class="summary-title">📊 여정 요약</div>
       <div class="summary-row"><span>선택 명소</span><span class="summary-val">${allCards.length}곳</span></div>
-      <div class="summary-row"><span>예상 소요</span><span class="summary-val">약 ${Math.round(totalHours)}시간</span></div>
-      <div class="summary-row"><span>이동 거리</span><span class="summary-val">약 ${hasEast ? '35' : hasYangdong ? '25' : '8'}km</span></div>
+      <div class="summary-row"><span>예상 소요</span><span class="summary-val">약 ${Math.round(totalH)}시간</span></div>
+      <div class="summary-row"><span>이동 거리</span><span class="summary-val">약 ${hasEast?'35':hasYd?'25':'8'}km</span></div>
     </div>`;
 }
 
 // ─── CONFIRM ─────────────────────────────────────────────────────────────────
 function confirmPlan() {
   const allCards = [...timeline.morning, ...timeline.afternoon, ...timeline.evening];
-  if (allCards.length === 0) {
-    showToast('먼저 방문하고 싶은 곳을 타임라인에 배치해주세요! 🗺');
-    return;
-  }
-  showToast(`✨ ${allCards.map(c => c.name).join(' → ')} 여정이 확정됐어요!`);
+  if (allCards.length === 0) { showToast('먼저 방문하고 싶은 곳을 타임라인에 배치해주세요! 🗺'); return; }
+  showToast(`✨ ${allCards.map(c=>c.name).join(' → ')} 여정 확정!`);
+  if (isMobile()) switchTab('info');
   updateInfoPanel();
 }
 
@@ -238,9 +230,11 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3500);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
+updatePoolHint();
+window.addEventListener('resize', updatePoolHint);
 renderPool();
 renderAllSlots();
