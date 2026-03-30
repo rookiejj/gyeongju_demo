@@ -1,143 +1,125 @@
 /* ══════════════════════════════════════════════
    FLOATING NAV — 세 페이지 공통
-   glass pill, 하단 중앙 고정
+   트렌디 다크 에디토리얼 스타일
 ══════════════════════════════════════════════ */
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
 
 .float-nav {
   position: fixed;
-  bottom: 28px;
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10000;
 
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
 
-  background: rgba(18, 24, 40, 0.72);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(212, 168, 67, 0.28);
+  background: rgba(8, 10, 16, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 100px;
-  padding: 5px 6px;
+  padding: 4px 5px;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.35),
-    0 0 0 0.5px rgba(255, 255, 255, 0.05) inset;
+    0 2px 0 rgba(255, 255, 255, 0.04) inset,
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 0.5px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
 }
 
 .float-nav-item {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 18px;
+  gap: 6px;
+  padding: 8px 16px;
   border-radius: 100px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.52);
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  font-size: 12.5px;
   font-weight: 500;
-  white-space: nowrap;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
+  transition: all 0.18s ease;
+  position: relative;
 }
 
 .float-nav-item:hover {
-  color: #f0d080;
-  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .float-nav-item.active {
-  background: rgba(212, 168, 67, 0.18);
-  color: #f0d080;
+  background: #e8ff47;
+  color: #0c0e14;
+  font-weight: 700;
 }
 
-.float-nav-item.active::before {
-  content: '';
-  position: absolute;
-  top: 7px;
-  bottom: 7px;
-  left: 7px;
-  right: 7px;
-  border-radius: 100px;
-  background: rgba(212, 168, 67, 0.08);
+.float-nav-item.active:hover {
+  background: #eeff60;
+  color: #0c0e14;
 }
 
 .float-nav-icon {
-  font-size: 15px;
-  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1;
 }
 
-.float-nav-label {
-  position: relative;
-}
-
-/* 구분선 */
 .float-nav-sep {
   width: 1px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
-  margin: 0 2px;
 }
 
-/* 모바일 */
-@media (max-width: 767px) {
+/* ── 데스크탑 여백 ── */
+body.page-proposal .content,
+body.page-contest {
+  padding-bottom: 0;
+}
 
-  /* 모든 페이지: 우하단 고정 아이콘 전용 컴팩트 pill */
+/* ── 모바일 ── */
+@media (max-width: 767px) {
   .float-nav {
-    bottom: 16px;
-    left: auto;
+    bottom: auto;
+    top: auto;
+    /* 우하단 세로 버튼 그룹 */
+    bottom: 20px;
     right: 16px;
+    left: auto;
     transform: none;
-    border-radius: 100px;
-    padding: 5px 5px;
-    gap: 2px;
     flex-direction: column;
+    gap: 3px;
+    padding: 4px 4px;
+    border-radius: 18px;
   }
 
   .float-nav-sep {
-    display: none;
+    width: 80%;
+    height: 1px;
+    margin: 0 auto;
   }
 
-  /* 아이콘만 표시, 레이블 숨김 */
+  /* 레이블 숨기고 아이콘+숫자만 */
   .float-nav-label {
     display: none;
   }
 
   .float-nav-item {
-    padding: 9px 10px;
+    padding: 10px;
+    width: 40px;
+    height: 40px;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    border-radius: 14px;
   }
 
   .float-nav-icon {
-    font-size: 17px;
+    font-size: 16px;
   }
 
-  /* 메인 앱: 기존 탭바 위로 올림 */
+  /* 메인 앱: 기존 탭바 위 */
   body.page-demo .float-nav {
-    display: flex;
     bottom: calc(var(--tabnav-h, 64px) + 12px);
-  }
-}
-
-/* 메인 앱: 플로팅 네비가 기존 레이아웃과 겹치지 않도록 여백 */
-body.page-demo .layout {
-  padding-bottom: 0;
-}
-
-/* 제안서·공모전 페이지: 하단 여백 확보 */
-body.page-proposal .content,
-body.page-contest .contest-body {
-  padding-bottom: 90px;
-}
-
-@media (max-width: 767px) {
-
-  body.page-proposal .content,
-  body.page-contest .contest-body {
-    padding-bottom: 24px;
   }
 }
