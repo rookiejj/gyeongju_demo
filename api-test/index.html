@@ -543,7 +543,8 @@
         <section class="section">
             <div class="sec-label">설정</div>
             <div class="apikey-wrap">
-                <div class="apikey-notice">⚠️ API 키는 이 브라우저에만 저장됩니다. 서버에 전송되지 않습니다.</div>
+                <div class="apikey-notice">⚠️ 공공데이터포털 → 마이페이지 → 인증키 발급현황에서 <strong>일반 인증키 (Encoding)</strong> 를 복사해서
+                    붙여넣으세요. 키는 이 브라우저에만 저장됩니다.</div>
                 <div class="config-grid">
                     <div class="config-item">
                         <label>SERVICE KEY (인증키)</label>
@@ -785,6 +786,7 @@
                 // 프록시가 XML 오류를 래핑한 경우
                 if (data._proxyError) {
                     const code = data._errorCode;
+                    const authMsg = data._authMsg || '';
                     const MSG = {
                         '10': '잘못된 요청 파라미터',
                         '11': '필수 요청 파라미터 누락',
@@ -794,11 +796,21 @@
                         '30': '등록되지 않은 서비스키',
                         '31': '기간이 만료된 서비스키',
                         '32': '등록되지 않은 IP',
+                        '0000': '정상 (XML 파싱 오류)',
                         '99': '기타 오류',
                     };
-                    const msg = MSG[code] || `오류코드 ${code || '알 수 없음'}`;
-                    setStatus('error', `API 오류 — ${msg}`);
-                    showRaw(JSON.stringify(data, null, 2));
+                    const codeMsg = code ? (MSG[code] || `오류코드 ${code}`) : '';
+                    const display = authMsg || codeMsg || data._errMsg || '알 수 없는 오류 — Raw JSON 탭에서 원문 확인';
+                    setStatus('error', `API 오류 — ${display}`);
+                    // 디버그 정보를 보기 좋게 표시
+                    const debug = {
+                        요청URL: data._requestUrl,
+                        오류코드: code,
+                        authMsg: data._authMsg,
+                        errMsg: data._errMsg,
+                        rawXml: data._rawXml
+                    };
+                    showRaw(JSON.stringify(debug, null, 2));
                     return;
                 }
 

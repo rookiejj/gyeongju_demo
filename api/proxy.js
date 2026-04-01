@@ -11,41 +11,39 @@ export default async function handler(req, res) {
 
     const BASE = 'https://apis.data.go.kr/B551011/KorService1';
 
-    // URL 객체로 파라미터 구성 → URLSearchParams가 특수문자를 올바르게 인코딩
-    const targetUrl = new URL(`${BASE}/${endpoint}`);
+    // serviceKey는 포털에서 받은 Encoding Key 그대로 사용 (raw append — 이중 인코딩 방지)
+    // 나머지 파라미터는 URLSearchParams로 처리
+    const params = new URLSearchParams(rest);
+    const finalUrl = `${BASE}/${endpoint}?serviceKey=${serviceKey}&${params.toString()}`;
 
-    // serviceKey: Vercel req.query는 이미 디코딩된 값을 줌
-    // → searchParams.set()이 다시 올바르게 인코딩해줌
-    targetUrl.searchParams.set('serviceKey', serviceKey || '');
-
-    // 나머지 파라미터
-    Object.entries(rest).forEach(([k, v]) => {
-        targetUrl.searchParams.set(k, v);
-    });
-
-    const finalUrl = targetUrl.toString();
+    // 디버그용 (키 앞 10자만 노출)
+    const debugUrl = `${BASE}/${endpoint}?serviceKey=${(serviceKey || '').slice(0, 10)}***&${params.toString()}`;
 
     try {
         const response = await fetch(finalUrl);
         const text = await response.text();
 
-        // 응답이 JSON인지 먼저 확인
+        // JSON 응답이면 그대로 반환
         try {
             const json = JSON.parse(text);
             return res.status(200).json(json);
-        } catch {
-            // XML 응답 — 오류코드 파싱 후 JSON으로 래핑해서 반환
-            const codeMatch = text.match(/<errMsg>([^<]+)<\/errMsg>|<returnReasonCode>([^<]+)<\/returnReasonCode>|<cmmMsgHeader>[\s\S]*?<errMsg>([^<]+)<\/errMsg>/);
-            const returnCode = text.match(/<returnReasonCode>([^<]+)<\/returnReasonCode>/);
+        } catch { /* XML 응답 처리 */ }
 
-            return res.status(200).json({
-                _proxyError: true,
-                _message: 'XML 응답 수신 (JSON 변환 실패)',
-                _errorCode: returnCode ? returnCode[1] : null,
-                _rawXml: text.substring(0, 1000) // 원문 앞 1000자
-            });
-        }
+        // XML에서 오류코드 추출
+        const codeMatch = text.match(/<returnReasonCode>([^<]+)<\/returnReasonCode>/);
+        const authMatch = text.match(/<returnAuthMsg>([^<]+)<\/returnAuthMsg>/);
+        const errMatch = text.match(/<errMsg>([^<]+)<\/errMsg>/);
+
+        return res.status(200).json({
+            _proxyError: true,
+            _errorCode: codeMatch ? codeMatch[1] : null,
+            _authMsg: authMatch ? authMatch[1] : null,
+            _errMsg: errMatch ? errMatch[1] : null,
+            _requestUrl: debugUrl,
+            _rawXml: text
+        });
+
     } catch (e) {
-        return res.status(500).json({ error: String(e) });
+        return res.status(500).json({ error: String(e), _requestUrl: debugUrl });
     }
 }
