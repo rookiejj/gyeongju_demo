@@ -9,7 +9,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'endpoint 파라미터가 필요합니다' });
     }
 
-    const BASE = 'https://apis.data.go.kr/B551011/KorService1';
+    const BASE = 'https://apis.data.go.kr/B551011/KorService2';
 
     // serviceKey는 포털에서 받은 Encoding Key 그대로 사용 (raw append — 이중 인코딩 방지)
     // 나머지 파라미터는 URLSearchParams로 처리

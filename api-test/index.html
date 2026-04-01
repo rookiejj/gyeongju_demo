@@ -632,12 +632,12 @@
     <script src="../src/js/nav.js"></script>
     <script>
         // ── 엔드포인트 프리셋 ─────────────────────────────────────────────────────────
-        const BASE = 'https://apis.data.go.kr/B551011/KorService1';
+        const BASE = 'https://apis.data.go.kr/B551011/KorService2';
         const PROXY = '/api/proxy'; // Vercel 서버리스 프록시
 
         const PRESETS = {
             area: {
-                url: '/areaBasedList1',
+                url: '/areaBasedList2',
                 label: '지역기반 관광정보',
                 params: [
                     { id: 'areaCode', label: '지역코드', default: '35', help: '35 = 경북' },
@@ -648,7 +648,7 @@
                 ]
             },
             keyword: {
-                url: '/searchKeyword1',
+                url: '/searchKeyword2',
                 label: '키워드 검색',
                 params: [
                     { id: 'keyword', label: '검색어', default: '불국사', help: '관광지명 입력' },
@@ -658,7 +658,7 @@
                 ]
             },
             detail: {
-                url: '/detailCommon1',
+                url: '/detailCommon2',
                 label: '상세정보',
                 params: [
                     { id: 'contentId', label: '콘텐츠 ID', default: '264137', help: '불국사 = 264137' },
@@ -668,7 +668,7 @@
                 ]
             },
             nearbymap: {
-                url: '/locationBasedList1',
+                url: '/locationBasedList2',
                 label: '위치기반 관광정보',
                 params: [
                     { id: 'mapX', label: '경도 (X)', default: '129.3317', help: '경주 불국사 경도' },
