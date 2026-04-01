@@ -869,7 +869,9 @@
             const empty = document.getElementById('emptyCards');
 
             container.innerHTML = items.map(item => {
-                const img = item.firstimage || item.firstimage2 || '';
+                const rawImg = item.firstimage || item.firstimage2 || '';
+                // http:// → https:// 강제 변환 (Mixed Content 차단 방지)
+                const img = rawImg ? rawImg.replace(/^http:\/\//i, 'https://') : '';
                 const typeLabel = {
                     '12': '관광지', '14': '문화시설', '15': '행사', '25': '여행코스',
                     '28': '레포츠', '32': '숙박', '38': '쇼핑', '39': '음식점'
