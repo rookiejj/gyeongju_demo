@@ -961,11 +961,14 @@
             updateUrl();
         }
 
+        const DEFAULT_KEY = 'NryVtMf4lNhHYrkgTlJoMgI9arDrlgIqcGCNm641FzPOUJHLkhVux%2BApOR16%2FpH8PzMLk%2BO%2FpSbXGJ8IGyr9tg%3D%3D';
+
         function loadApiKey() {
-            const saved = localStorage.getItem(KEY_STORAGE);
-            if (saved) {
-                document.getElementById('apiKey').value = saved;
-                document.getElementById('keySavedBadge').style.display = 'block';
+            const saved = localStorage.getItem(KEY_STORAGE) || DEFAULT_KEY;
+            document.getElementById('apiKey').value = saved;
+            document.getElementById('keySavedBadge').style.display = 'block';
+            if (!localStorage.getItem(KEY_STORAGE)) {
+                localStorage.setItem(KEY_STORAGE, DEFAULT_KEY);
             }
         }
 
