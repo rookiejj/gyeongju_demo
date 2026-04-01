@@ -16,8 +16,12 @@ export default async function handler(req, res) {
     const params = new URLSearchParams(rest);
     const finalUrl = `${BASE}/${endpoint}?serviceKey=${serviceKey}&${params.toString()}`;
 
-    // 디버그용 (키 앞 10자만 노출)
-    const debugUrl = `${BASE}/${endpoint}?serviceKey=${(serviceKey || '').slice(0, 10)}***&${params.toString()}`;
+    // 디버그용: 키 앞 20자 + 끝 4자만 노출
+    const keyStr = serviceKey || '';
+    const maskedKey = keyStr.length > 24
+        ? keyStr.slice(0, 20) + '...' + keyStr.slice(-4)
+        : keyStr;
+    const debugUrl = `${BASE}/${endpoint}?serviceKey=${maskedKey}&${params.toString()}`;
 
     try {
         const response = await fetch(finalUrl);

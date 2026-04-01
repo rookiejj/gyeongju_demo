@@ -643,6 +643,7 @@
                     { id: 'areaCode', label: '지역코드', default: '35', help: '35 = 경북' },
                     { id: 'sigunguCode', label: '시군구코드', default: '2', help: '2 = 경주시' },
                     { id: 'contentTypeId', label: '콘텐츠타입', default: '12', help: '12=관광지 14=문화시설 15=행사 32=숙박 39=음식점' },
+                    { id: 'pageNo', label: '페이지번호', default: '1', help: '1부터 시작' },
                     { id: 'numOfRows', label: '가져올 수', default: '10', help: '최대 100' },
                 ]
             },
@@ -652,6 +653,7 @@
                 params: [
                     { id: 'keyword', label: '검색어', default: '불국사', help: '관광지명 입력' },
                     { id: 'contentTypeId', label: '콘텐츠타입', default: '', help: '비우면 전체' },
+                    { id: 'pageNo', label: '페이지번호', default: '1', help: '1부터 시작' },
                     { id: 'numOfRows', label: '가져올 수', default: '10', help: '최대 100' },
                 ]
             },
@@ -661,6 +663,8 @@
                 params: [
                     { id: 'contentId', label: '콘텐츠 ID', default: '264137', help: '불국사 = 264137' },
                     { id: 'contentTypeId', label: '콘텐츠타입', default: '12', help: '12 = 관광지' },
+                    { id: 'defaultYN', label: '기본정보', default: 'Y', help: 'Y/N' },
+                    { id: 'firstImageYN', label: '대표이미지', default: 'Y', help: 'Y/N' },
                 ]
             },
             nearbymap: {
@@ -671,6 +675,7 @@
                     { id: 'mapY', label: '위도 (Y)', default: '35.7901', help: '경주 불국사 위도' },
                     { id: 'radius', label: '반경 (m)', default: '3000', help: '최대 20000' },
                     { id: 'contentTypeId', label: '콘텐츠타입', default: '12', help: '12 = 관광지' },
+                    { id: 'pageNo', label: '페이지번호', default: '1', help: '1부터 시작' },
                     { id: 'numOfRows', label: '가져올 수', default: '10', help: '최대 100' },
                 ]
             }
