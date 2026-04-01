@@ -607,6 +607,8 @@
             <div class="result-tabs">
                 <button class="result-tab active" onclick="switchTab('cards')">카드 보기</button>
                 <button class="result-tab" onclick="switchTab('raw')">Raw JSON</button>
+                <button class="result-tab" onclick="downloadJson()" id="downloadBtn"
+                    style="margin-left:auto;color:var(--teal)">⬇ 다운로드</button>
             </div>
 
             <div class="result-panel">
@@ -730,13 +732,12 @@
             return `${BASE}${preset.url}?${params.toString()}`;
         }
 
-        function buildProxyUrl() {
+        function buildProxyUrl(overridePage, overrideRows) {
             const key = document.getElementById('apiKey').value.trim();
             const type = document.getElementById('respType').value;
             const preset = PRESETS[currentPreset];
             const params = new URLSearchParams();
 
-            // 프록시에 endpoint 이름 전달 (앞 슬래시 제거)
             params.set('endpoint', preset.url.replace('/', ''));
             params.set('serviceKey', key || 'YOUR_API_KEY');
             params.set('MobileOS', 'ETC');
@@ -748,6 +749,10 @@
                 const el = document.getElementById('param_' + p.id);
                 if (el && el.value.trim()) params.set(p.id, el.value.trim());
             });
+
+            // 페이지네이션 오버라이드
+            if (overridePage !== undefined) params.set('pageNo', String(overridePage));
+            if (overrideRows !== undefined) params.set('numOfRows', String(overrideRows));
 
             return `${PROXY}?${params.toString()}`;
         }
@@ -769,78 +774,86 @@
 
             const btn = document.getElementById('callBtn');
             btn.disabled = true;
-            setStatus('loading', '응답 대기 중...');
+            setStatus('loading', '1페이지 호출 중...');
             clearCards();
 
-            const proxyUrl = buildProxyUrl();
+            const NUM_OF_ROWS = 100;
+            let allItems = [];
 
             try {
-                const res = await fetch(proxyUrl);
-                const text = await res.text();
+                // ── 1페이지 먼저 호출해서 totalCount 파악 ──────────────────────────────
+                const firstUrl = buildProxyUrl(1, NUM_OF_ROWS);
+                const firstRes = await fetch(firstUrl);
+                const firstText = await firstRes.text();
 
-                // JSON 파싱 시도
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch {
-                    setStatus('error', `응답 파싱 실패 (HTTP ${res.status})`);
-                    showRaw(text);
-                    return;
+                let firstData;
+                try { firstData = JSON.parse(firstText); }
+                catch {
+                    setStatus('error', `응답 파싱 실패 (HTTP ${firstRes.status})`);
+                    showRaw(firstText); return;
                 }
 
-                // 프록시가 XML 오류를 래핑한 경우
-                if (data._proxyError) {
-                    const code = data._errorCode;
-                    const authMsg = data._authMsg || '';
+                if (firstData._proxyError) {
+                    const code = firstData._errorCode;
                     const MSG = {
-                        '10': '잘못된 요청 파라미터',
-                        '11': '필수 요청 파라미터 누락',
-                        '12': '해당 오픈 API 서비스 없음 — 공공데이터포털에서 서비스 신청 필요',
-                        '20': '서비스 접근 거부',
-                        '22': '서비스 요청 횟수 초과',
-                        '30': '등록되지 않은 서비스키',
-                        '31': '기간이 만료된 서비스키',
-                        '32': '등록되지 않은 IP',
-                        '0000': '정상 (XML 파싱 오류)',
-                        '99': '기타 오류',
+                        '10': '잘못된 요청 파라미터', '11': '필수 요청 파라미터 누락',
+                        '12': '서비스 미신청 — 공공데이터포털 활용신청 필요',
+                        '20': '서비스 접근 거부', '22': '요청 횟수 초과',
+                        '30': '등록되지 않은 서비스키', '31': '만료된 서비스키',
+                        '32': '등록되지 않은 IP', '99': '기타 오류',
                     };
-                    const codeMsg = code ? (MSG[code] || `오류코드 ${code}`) : '';
-                    const display = authMsg || codeMsg || data._errMsg || '알 수 없는 오류 — Raw JSON 탭에서 원문 확인';
+                    const display = firstData._authMsg || (code ? (MSG[code] || `오류코드 ${code}`) : '') || firstData._errMsg || '알 수 없는 오류';
                     setStatus('error', `API 오류 — ${display}`);
-                    // 디버그 정보를 보기 좋게 표시
-                    const debug = {
-                        요청URL: data._requestUrl,
-                        오류코드: code,
-                        authMsg: data._authMsg,
-                        errMsg: data._errMsg,
-                        rawXml: data._rawXml
-                    };
-                    showRaw(JSON.stringify(debug, null, 2));
+                    showRaw(JSON.stringify({ 요청URL: firstData._requestUrl, 오류코드: code, authMsg: firstData._authMsg, rawXml: firstData._rawXml }, null, 2));
                     return;
                 }
 
-                lastResponse = data;
-
-                // 오류 응답 체크
-                const header = data?.response?.header;
+                const header = firstData?.response?.header;
                 if (header && header.resultCode !== '0000') {
                     setStatus('error', `API 오류 ${header.resultCode} — ${header.resultMsg}`);
-                    showRaw(JSON.stringify(data, null, 2));
-                    return;
+                    showRaw(JSON.stringify(firstData, null, 2)); return;
                 }
 
-                const items = data?.response?.body?.items?.item;
-                const total = data?.response?.body?.totalCount ?? 0;
+                const totalCount = parseInt(firstData?.response?.body?.totalCount ?? 0);
+                const totalPages = Math.ceil(totalCount / NUM_OF_ROWS);
 
-                setStatus('success', `✓ 성공 — 총 ${total}건 중 ${Array.isArray(items) ? items.length : (items ? 1 : 0)}건 수신`);
-                showRaw(JSON.stringify(data, null, 2));
-
-                if (items) {
-                    const arr = Array.isArray(items) ? items : [items];
-                    renderCards(arr);
-                } else {
-                    showEmptyCards('결과 데이터가 없습니다');
+                const firstItems = firstData?.response?.body?.items?.item;
+                if (firstItems) {
+                    const arr = Array.isArray(firstItems) ? firstItems : [firstItems];
+                    allItems = allItems.concat(arr);
                 }
+
+                setStatus('loading', `수집 중... 1 / ${totalPages} 페이지 (총 ${totalCount}건)`);
+                renderCards(allItems);
+
+                // ── 2페이지 이후 순차 호출 ─────────────────────────────────────────────
+                for (let page = 2; page <= totalPages; page++) {
+                    setStatus('loading', `수집 중... ${page} / ${totalPages} 페이지 (${allItems.length}건 수집됨)`);
+
+                    const url = buildProxyUrl(page, NUM_OF_ROWS);
+                    const res = await fetch(url);
+                    const text = await res.text();
+
+                    let data;
+                    try { data = JSON.parse(text); }
+                    catch { continue; }
+
+                    if (data._proxyError || data?.response?.header?.resultCode !== '0000') continue;
+
+                    const items = data?.response?.body?.items?.item;
+                    if (items) {
+                        const arr = Array.isArray(items) ? items : [items];
+                        allItems = allItems.concat(arr);
+                        renderCards(allItems);
+                    }
+
+                    // 과부하 방지 딜레이
+                    await new Promise(r => setTimeout(r, 200));
+                }
+
+                lastResponse = allItems;
+                setStatus('success', `✓ 수집 완료 — 총 ${allItems.length}건 (전체 ${totalCount}건 중)`);
+                showRaw(JSON.stringify(allItems, null, 2));
 
             } catch (e) {
                 setStatus('error', `네트워크 오류 — 프록시 서버에 연결할 수 없습니다 (Vercel 배포 후 사용 가능)`);
@@ -974,6 +987,15 @@
                 input.type = 'password';
                 btn.textContent = '👁';
             }
+        }
+
+        function downloadJson() {
+            if (!lastResponse) return;
+            const blob = new Blob([JSON.stringify(lastResponse, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `gyeongju_spots_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
         }
 
         // 초기 렌더링
