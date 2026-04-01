@@ -3,9 +3,10 @@
 
 (function () {
   const pages = [
-    { href: '/',         icon: '🗓', label: '여정 만들기', cls: 'page-demo'     },
+    { href: '/', icon: '🗓', label: '여정 만들기', cls: 'page-demo' },
     { href: '/proposal', icon: '📋', label: '서비스 제안서', cls: 'page-proposal' },
-    { href: '/contest',  icon: '🏆', label: '공모전 안내',  cls: 'page-contest'  },
+    { href: '/contest', icon: '🏆', label: '공모전 안내', cls: 'page-contest' },
+    { href: '/api-test', icon: '⚡', label: 'API 테스트', cls: 'page-apitest' },
   ];
 
   // body에 현재 페이지 클래스 부여

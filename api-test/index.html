@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경주 타임트래블 — API 테스트</title>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="../src/css/nav.css">
+    <style>
+        :root {
+            --bg: #0c0e14;
+            --bg2: #111318;
+            --bg3: #16191f;
+            --bg4: #1c1f27;
+            --border: rgba(255, 255, 255, 0.07);
+            --text: #f0ede6;
+            --muted: rgba(240, 237, 230, 0.5);
+            --muted2: rgba(240, 237, 230, 0.22);
+            --accent: #e8ff47;
+            --teal: #2dd4bf;
+            --red: #ff6b6b;
+            --orange: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* HEADER */
+        .header {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(12, 14, 20, 0.92);
+            backdrop-filter: blur(16px);
+        }
+
+        .header-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--bg);
+            background: var(--accent);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .header-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .header-sub {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* LAYOUT */
+        .content {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 36px 24px 120px;
+        }
+
+        /* SECTION */
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .sec-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sec-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* CONFIG PANEL */
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .config-item label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .config-item input,
+        .config-item select {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-family: 'Pretendard', sans-serif;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.18s;
+            width: 100%;
+        }
+
+        .config-item input:focus,
+        .config-item select:focus {
+            border-color: rgba(232, 255, 71, 0.4);
+        }
+
+        .config-item input::placeholder {
+            color: var(--muted2);
+        }
+
+        /* API KEY INPUT */
+        .apikey-wrap {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+        }
+
+        .apikey-notice {
+            font-size: 12px;
+            color: var(--orange);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* BUTTONS */
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: 'Pretendard', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.18s;
+            letter-spacing: -0.2px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0c0e14;
+        }
+
+        .btn-primary:hover {
+            background: #eeff60;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-ghost {
+            background: var(--bg3);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* STATUS */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .status-bar.idle {
+            background: var(--bg3);
+            color: var(--muted2);
+            border: 1px solid var(--border);
+        }
+
+        .status-bar.loading {
+            background: rgba(232, 255, 71, 0.07);
+            color: var(--accent);
+            border: 1px solid rgba(232, 255, 71, 0.2);
+        }
+
+        .status-bar.success {
+            background: rgba(45, 212, 191, 0.07);
+            color: var(--teal);
+            border: 1px solid rgba(45, 212, 191, 0.2);
+        }
+
+        .status-bar.error {
+            background: rgba(255, 107, 107, 0.07);
+            color: var(--red);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-bar.idle .status-dot {
+            background: var(--muted2);
+        }
+
+        .status-bar.loading .status-dot {
+            background: var(--accent);
+            animation: pulse 1s infinite;
+        }
+
+        .status-bar.success .status-dot {
+            background: var(--teal);
+        }
+
+        .status-bar.error .status-dot {
+            background: var(--red);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.3
+            }
+        }
+
+        /* RESULTS TABS */
+        .result-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-tab {
+            padding: 9px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted2);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: 'Pretendard', sans-serif;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.18s;
+        }
+
+        .result-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .result-tab:hover {
+            color: var(--muted);
+        }
+
+        /* RESULT PANEL */
+        .result-panel {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            min-height: 200px;
+        }
+
+        .result-pane {
+            display: none;
+            padding: 16px;
+        }
+
+        .result-pane.active {
+            display: block;
+        }
+
+        /* CARDS */
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 10px;
+        }
+
+        .result-card {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .result-card-img {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            background: var(--bg4);
+            display: block;
+        }
+
+        .result-card-img-placeholder {
+            width: 100%;
+            height: 130px;
+            background: var(--bg4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted2);
+            font-size: 28px;
+        }
+
+        .result-card-body {
+            padding: 12px;
+        }
+
+        .result-card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .result-card-addr {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .result-card-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .result-card-tag {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 100px;
+            background: var(--bg);
+            color: var(--muted2);
+            border: 1px solid var(--border);
+        }
+
+        /* RAW JSON */
+        .raw-json {
+            font-family: 'Courier New', monospace;
+            font-size: 11.5px;
+            color: var(--teal);
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.7;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .raw-json .key {
+            color: #a78bfa;
+        }
+
+        .raw-json .str {
+            color: var(--teal);
+        }
+
+        .raw-json .num {
+            color: var(--orange);
+        }
+
+        .raw-json .bool {
+            color: var(--red);
+        }
+
+        .raw-json .null {
+            color: var(--muted);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            color: var(--muted2);
+            font-size: 13px;
+            gap: 10px;
+        }
+
+        .empty-state-icon {
+            font-size: 32px;
+            opacity: 0.4;
+        }
+
+        /* URL PREVIEW */
+        .url-preview {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            word-break: break-all;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .url-preview .hl {
+            color: var(--accent);
+        }
+
+        /* ENDPOINT PRESETS */
+        .presets {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .preset-btn {
+            padding: 5px 12px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--bg3);
+            color: var(--muted);
+            cursor: pointer;
+            font-family: 'Pretendard', sans-serif;
+            transition: all 0.15s;
+        }
+
+        .preset-btn:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .preset-btn.active {
+            background: var(--accent2, rgba(232, 255, 71, 0.1));
+            color: var(--accent);
+            border-color: rgba(232, 255, 71, 0.3);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 640px) {
+            .header {
+                padding: 14px 16px;
+            }
+
+            .content {
+                padding: 24px 14px 100px;
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <span class="header-badge">API</span>
+        <div>
+            <div class="header-title">한국관광공사 OpenAPI 테스트</div>
+            <div class="header-sub">TourAPI 6.0 · 경주 관광정보 응답 확인</div>
+        </div>
+    </header>
+
+    <div class="content">
+
+        <!-- API KEY -->
+        <section class="section">
+            <div class="sec-label">설정</div>
+            <div class="apikey-wrap">
+                <div class="apikey-notice">⚠️ API 키는 이 브라우저에만 저장됩니다. 서버에 전송되지 않습니다.</div>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label>SERVICE KEY (인증키)</label>
+                        <div style="display:flex;gap:6px">
+                            <input type="password" id="apiKey" placeholder="한국관광공사 API 인증키 입력" oninput="saveApiKey()"
+                                style="flex:1">
+                            <button class="btn btn-ghost" onclick="toggleKeyVisible()" id="toggleBtn" title="키 보기/숨기기"
+                                style="padding:9px 12px;flex-shrink:0">👁</button>
+                            <button class="btn" onclick="clearApiKey()" title="저장된 키 삭제"
+                                style="padding:9px 12px;flex-shrink:0;background:rgba(255,107,107,0.08);color:var(--red);border:1px solid rgba(255,107,107,0.2)">🗑</button>
+                        </div>
+                        <div id="keySavedBadge" style="display:none;font-size:11px;color:var(--teal);margin-top:6px">✓
+                            브라우저에 저장됨 — 새로고침해도 유지됩니다</div>
+                    </div>
+                    <div class="config-item">
+                        <label>응답 타입</label>
+                        <select id="respType">
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ENDPOINT -->
+        <section class="section">
+            <div class="sec-label">엔드포인트</div>
+
+            <div class="presets" id="presets">
+                <button class="preset-btn active" data-id="area">지역기반 관광정보</button>
+                <button class="preset-btn" data-id="keyword">키워드 검색</button>
+                <button class="preset-btn" data-id="detail">상세정보</button>
+                <button class="preset-btn" data-id="nearbymap">위치기반 관광정보</button>
+            </div>
+
+            <div class="config-grid" id="paramGrid"></div>
+
+            <div class="url-preview" id="urlPreview">
+                <span style="color:var(--muted2)">엔드포인트 구성 중...</span>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" id="callBtn" onclick="callApi()">
+                    ⚡ API 호출
+                </button>
+                <button class="btn btn-ghost" onclick="clearResult()">초기화</button>
+            </div>
+        </section>
+
+        <!-- RESULT -->
+        <section class="section">
+            <div class="sec-label">응답 결과</div>
+
+            <div class="status-bar idle" id="statusBar">
+                <span class="status-dot"></span>
+                <span id="statusText">API 호출 대기 중</span>
+            </div>
+
+            <div class="result-tabs">
+                <button class="result-tab active" onclick="switchTab('cards')">카드 보기</button>
+                <button class="result-tab" onclick="switchTab('raw')">Raw JSON</button>
+            </div>
+
+            <div class="result-panel">
+                <div class="result-pane active" id="pane-cards">
+                    <div class="empty-state" id="emptyCards">
+                        <div class="empty-state-icon">🗺</div>
+                        <div>API를 호출하면 관광지 카드가 여기에 표시됩니다</div>
+                    </div>
+                    <div class="result-cards" id="cardContainer" style="display:none"></div>
+                </div>
+                <div class="result-pane" id="pane-raw">
+                    <div class="empty-state" id="emptyRaw">
+                        <div class="empty-state-icon">{ }</div>
+                        <div>응답 JSON이 여기에 표시됩니다</div>
+                    </div>
+                    <pre class="raw-json" id="rawJson" style="display:none"></pre>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="../src/js/nav.js"></script>
+    <script>
+        // ── 엔드포인트 프리셋 ─────────────────────────────────────────────────────────
+        const BASE = 'https://apis.data.go.kr/B551011/KorService1';
+        const PROXY = '/api/proxy'; // Vercel 서버리스 프록시
+
+        const PRESETS = {
+            area: {
+                url: '/areaBasedList1',
+                label: '지역기반 관광정보',
+                params: [
+                    { id: 'areaCode', label: '지역코드', default: '35', help: '35 = 경북' },
+                    { id: 'sigunguCode', label: '시군구코드', default: '2', help: '2 = 경주시' },
+                    { id: 'contentTypeId', label: '콘텐츠타입', default: '12', help: '12=관광지 14=문화시설 15=행사 32=숙박 39=음식점' },
+                    { id: 'numOfRows', label: '가져올 수', default: '10', help: '최대 100' },
+                ]
+            },
+            keyword: {
+                url: '/searchKeyword1',
+                label: '키워드 검색',
+                params: [
+                    { id: 'keyword', label: '검색어', default: '불국사', help: '관광지명 입력' },
+                    { id: 'contentTypeId', label: '콘텐츠타입', default: '', help: '비우면 전체' },
+                    { id: 'numOfRows', label: '가져올 수', default: '10', help: '최대 100' },
+                ]
+            },
+            detail: {
+                url: '/detailCommon1',
+                label: '상세정보',
+                params: [
+                    { id: 'contentId', label: '콘텐츠 ID', default: '264137', help: '불국사 = 264137' },
+                    { id: 'contentTypeId', label: '콘텐츠타입', default: '12', help: '12 = 관광지' },
+                ]
+            },
+            nearbymap: {
+                url: '/locationBasedList1',
+                label: '위치기반 관광정보',
+                params: [
+                    { id: 'mapX', label: '경도 (X)', default: '129.3317', help: '경주 불국사 경도' },
+                    { id: 'mapY', label: '위도 (Y)', default: '35.7901', help: '경주 불국사 위도' },
+                    { id: 'radius', label: '반경 (m)', default: '3000', help: '최대 20000' },
+                    { id: 'contentTypeId', label: '콘텐츠타입', default: '12', help: '12 = 관광지' },
+                    { id: 'numOfRows', label: '가져올 수', default: '10', help: '최대 100' },
+                ]
+            }
+        };
+
+        let currentPreset = 'area';
+        let lastResponse = null;
+
+        // ── 프리셋 전환 ───────────────────────────────────────────────────────────────
+        function setPreset(id) {
+            currentPreset = id;
+            document.querySelectorAll('.preset-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.id === id);
+            });
+            renderParams();
+        }
+
+        document.querySelectorAll('.preset-btn').forEach(b => {
+            b.addEventListener('click', () => setPreset(b.dataset.id));
+        });
+
+        function renderParams() {
+            const preset = PRESETS[currentPreset];
+            const grid = document.getElementById('paramGrid');
+            grid.innerHTML = preset.params.map(p => `
+    <div class="config-item">
+      <label>${p.label} <span style="color:var(--muted2);font-weight:400">${p.help}</span></label>
+      <input type="text" id="param_${p.id}" value="${p.default}" placeholder="${p.help}" oninput="updateUrl()">
+    </div>
+  `).join('');
+            updateUrl();
+        }
+
+        function buildUrl() {
+            const key = document.getElementById('apiKey').value.trim();
+            const type = document.getElementById('respType').value;
+            const preset = PRESETS[currentPreset];
+            const params = new URLSearchParams();
+
+            params.set('serviceKey', key || 'YOUR_API_KEY');
+            params.set('MobileOS', 'ETC');
+            params.set('MobileApp', 'GyeongjuTimeTravel');
+            params.set('_type', type);
+            params.set('arrange', 'A');
+
+            preset.params.forEach(p => {
+                const el = document.getElementById('param_' + p.id);
+                if (el && el.value.trim()) params.set(p.id, el.value.trim());
+            });
+
+            // 실제 API URL (미리보기용)
+            return `${BASE}${preset.url}?${params.toString()}`;
+        }
+
+        function buildProxyUrl() {
+            const key = document.getElementById('apiKey').value.trim();
+            const type = document.getElementById('respType').value;
+            const preset = PRESETS[currentPreset];
+            const params = new URLSearchParams();
+
+            // 프록시에 endpoint 이름 전달 (앞 슬래시 제거)
+            params.set('endpoint', preset.url.replace('/', ''));
+            params.set('serviceKey', key || 'YOUR_API_KEY');
+            params.set('MobileOS', 'ETC');
+            params.set('MobileApp', 'GyeongjuTimeTravel');
+            params.set('_type', type);
+            params.set('arrange', 'A');
+
+            preset.params.forEach(p => {
+                const el = document.getElementById('param_' + p.id);
+                if (el && el.value.trim()) params.set(p.id, el.value.trim());
+            });
+
+            return `${PROXY}?${params.toString()}`;
+        }
+
+        function updateUrl() {
+            const url = buildUrl();
+            const preview = document.getElementById('urlPreview');
+            const [base, query] = url.split('?');
+            preview.innerHTML = `<span style="color:var(--muted)">${base}?</span><span class="hl">${query || ''}</span>`;
+        }
+
+        // ── API 호출 ──────────────────────────────────────────────────────────────────
+        async function callApi() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (!key) {
+                setStatus('error', '⚠️ API 키를 먼저 입력해주세요');
+                return;
+            }
+
+            const btn = document.getElementById('callBtn');
+            btn.disabled = true;
+            setStatus('loading', '응답 대기 중...');
+            clearCards();
+
+            const proxyUrl = buildProxyUrl();
+
+            try {
+                const res = await fetch(proxyUrl);
+                const text = await res.text();
+
+                // JSON 파싱 시도
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    setStatus('error', `파싱 오류 — XML 응답이거나 인증 실패 (HTTP ${res.status})`);
+                    showRaw(text);
+                    return;
+                }
+
+                lastResponse = data;
+
+                // 오류 응답 체크
+                const header = data?.response?.header;
+                if (header && header.resultCode !== '0000') {
+                    setStatus('error', `API 오류 ${header.resultCode} — ${header.resultMsg}`);
+                    showRaw(JSON.stringify(data, null, 2));
+                    return;
+                }
+
+                const items = data?.response?.body?.items?.item;
+                const total = data?.response?.body?.totalCount ?? 0;
+
+                setStatus('success', `✓ 성공 — 총 ${total}건 중 ${Array.isArray(items) ? items.length : (items ? 1 : 0)}건 수신`);
+                showRaw(JSON.stringify(data, null, 2));
+
+                if (items) {
+                    const arr = Array.isArray(items) ? items : [items];
+                    renderCards(arr);
+                } else {
+                    showEmptyCards('결과 데이터가 없습니다');
+                }
+
+            } catch (e) {
+                setStatus('error', `네트워크 오류 — 프록시 서버에 연결할 수 없습니다 (Vercel 배포 후 사용 가능)`);
+                showRaw(String(e));
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ── 카드 렌더링 ───────────────────────────────────────────────────────────────
+        function renderCards(items) {
+            const container = document.getElementById('cardContainer');
+            const empty = document.getElementById('emptyCards');
+
+            container.innerHTML = items.map(item => {
+                const img = item.firstimage || item.firstimage2 || '';
+                const typeLabel = {
+                    '12': '관광지', '14': '문화시설', '15': '행사', '25': '여행코스',
+                    '28': '레포츠', '32': '숙박', '38': '쇼핑', '39': '음식점'
+                }[item.contenttypeid] || item.contenttypeid || '';
+
+                return `
+      <div class="result-card">
+        ${img
+                        ? `<img class="result-card-img" src="${img}" alt="${item.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                        : ''
+                    }
+        <div class="result-card-img-placeholder" style="${img ? 'display:none' : ''}">🏛</div>
+        <div class="result-card-body">
+          <div class="result-card-title">${item.title || '—'}</div>
+          <div class="result-card-addr">${item.addr1 || item.addr2 || '주소 없음'}</div>
+          <div class="result-card-tags">
+            ${typeLabel ? `<span class="result-card-tag">${typeLabel}</span>` : ''}
+            ${item.contenttypeid ? `<span class="result-card-tag">ID ${item.contentid}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+            }).join('');
+
+            empty.style.display = 'none';
+            container.style.display = 'grid';
+        }
+
+        function showEmptyCards(msg) {
+            const container = document.getElementById('cardContainer');
+            const empty = document.getElementById('emptyCards');
+            container.style.display = 'none';
+            empty.style.display = 'flex';
+            empty.querySelector('div:last-child').textContent = msg;
+        }
+
+        function clearCards() {
+            document.getElementById('cardContainer').innerHTML = '';
+            document.getElementById('cardContainer').style.display = 'none';
+            document.getElementById('emptyCards').style.display = 'flex';
+        }
+
+        // ── Raw JSON 표시 ─────────────────────────────────────────────────────────────
+        function showRaw(text) {
+            const el = document.getElementById('rawJson');
+            const empty = document.getElementById('emptyRaw');
+            el.textContent = text;
+            el.style.display = 'block';
+            empty.style.display = 'none';
+        }
+
+        // ── 탭 전환 ───────────────────────────────────────────────────────────────────
+        function switchTab(id) {
+            document.querySelectorAll('.result-tab').forEach((t, i) => {
+                t.classList.toggle('active', ['cards', 'raw'][i] === id);
+            });
+            document.querySelectorAll('.result-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById('pane-' + id).classList.add('active');
+        }
+
+        // ── 상태 바 ───────────────────────────────────────────────────────────────────
+        function setStatus(type, msg) {
+            const bar = document.getElementById('statusBar');
+            const text = document.getElementById('statusText');
+            bar.className = 'status-bar ' + type;
+            text.textContent = msg;
+        }
+
+        // ── 초기화 ────────────────────────────────────────────────────────────────────
+        function clearResult() {
+            setStatus('idle', 'API 호출 대기 중');
+            clearCards();
+            document.getElementById('rawJson').style.display = 'none';
+            document.getElementById('emptyRaw').style.display = 'flex';
+        }
+
+        // ── API 키 localStorage ───────────────────────────────────────────────────────
+        const KEY_STORAGE = 'gyeongju_api_key';
+
+        function saveApiKey() {
+            const val = document.getElementById('apiKey').value;
+            if (val.trim()) {
+                localStorage.setItem(KEY_STORAGE, val);
+                document.getElementById('keySavedBadge').style.display = 'block';
+            } else {
+                localStorage.removeItem(KEY_STORAGE);
+                document.getElementById('keySavedBadge').style.display = 'none';
+            }
+            updateUrl();
+        }
+
+        function loadApiKey() {
+            const saved = localStorage.getItem(KEY_STORAGE);
+            if (saved) {
+                document.getElementById('apiKey').value = saved;
+                document.getElementById('keySavedBadge').style.display = 'block';
+            }
+        }
+
+        function clearApiKey() {
+            if (!confirm('저장된 API 키를 삭제할까요?')) return;
+            localStorage.removeItem(KEY_STORAGE);
+            document.getElementById('apiKey').value = '';
+            document.getElementById('keySavedBadge').style.display = 'none';
+            updateUrl();
+        }
+
+        function toggleKeyVisible() {
+            const input = document.getElementById('apiKey');
+            const btn = document.getElementById('toggleBtn');
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁';
+            }
+        }
+
+        // 초기 렌더링
+        loadApiKey();
+        renderParams();
+    </script>
+</body>
+
+</html>
